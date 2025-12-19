@@ -119,7 +119,6 @@ end
 function me.OnEvent(event, ...)
   if event == "PLAYER_ENTERING_WORLD" then
     if me.logger then
-      me.logger.LogEvent(me.tag, "PLAYER_ENTERING_WORLD")
     end
 
     -- In WoW 3.3.5, PLAYER_ENTERING_WORLD may not have the same parameters
@@ -148,7 +147,6 @@ function me.OnEvent(event, ...)
       end
     end
   elseif event == "BAG_UPDATE" then
-    me.logger.LogEvent(me.tag, "BAG_UPDATE")
 
     if initializationDone then
       -- trigger UpdateChangeMenu again to update items after an item was equipped
@@ -161,7 +159,6 @@ function me.OnEvent(event, ...)
       end
     end
   elseif event == "UNIT_INVENTORY_CHANGED" then
-    me.logger.LogEvent(me.tag, "UNIT_INVENTORY_CHANGED")
     local unit = ...
 
     if unit == RGGM_CONSTANTS.UNIT_ID_PLAYER and initializationDone then
@@ -171,7 +168,6 @@ function me.OnEvent(event, ...)
       end
     end
   elseif event == "BAG_UPDATE_COOLDOWN" then
-    me.logger.LogEvent(me.tag, "BAG_UPDATE_COOLDOWN")
 
     if initializationDone then
       me.gearBar.UpdateGearBars(me.gearBar.UpdateGearBarGearSlotCooldowns)
@@ -180,7 +176,6 @@ function me.OnEvent(event, ...)
       end
     end
   elseif event == "UPDATE_BINDINGS" then
-    me.logger.LogEvent(me.tag, "UPDATE_BINDINGS")
 
     --[[
       On starting up the addon often times GetBindingAction will not return the correct keybinding set but rather an
@@ -201,20 +196,17 @@ function me.OnEvent(event, ...)
       me.logger.LogDebug(me.tag, "Skipping UPDATE_BINDINGS - initialization not complete")
     end
   elseif event == "LOSS_OF_CONTROL_ADDED" then
-    me.logger.LogEvent(me.tag, "LOSS_OF_CONTROL_ADDED")
 
     if initializationDone then
       me.combatQueue.UpdateEquipChangeBlockStatus()
     end
   elseif event == "LOSS_OF_CONTROL_UPDATE" then
-    me.logger.LogEvent(me.tag, "LOSS_OF_CONTROL_UPDATE")
 
     if initializationDone then
       me.combatQueue.UpdateEquipChangeBlockStatus()
     end
   -- Note: LOSS_OF_CONTROL events may not exist in 3.3.5, but we handle them gracefully if they do
   elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
-    me.logger.LogEvent(me.tag, "UNIT_SPELLCAST_SUCCEEDED")
     local unit = ...
 
     if initializationDone then
@@ -226,7 +218,6 @@ function me.OnEvent(event, ...)
       end
     end
   elseif event == "UNIT_SPELLCAST_INTERRUPTED" then
-    me.logger.LogEvent(me.tag, "UNIT_SPELLCAST_INTERRUPTED")
 
     local unit = ...
 
@@ -234,7 +225,6 @@ function me.OnEvent(event, ...)
       me.combatQueue.ProcessQueue()
     end
   elseif event == "UNIT_SPELLCAST_CHANNEL_STOP" then
-    me.logger.LogEvent(me.tag, "UNIT_SPELLCAST_CHANNEL_STOP")
 
     local unit = ...
 
@@ -244,11 +234,8 @@ function me.OnEvent(event, ...)
   elseif (event == "PLAYER_REGEN_ENABLED" or event == "PLAYER_UNGHOST" or event == "PLAYER_ALIVE")
     and not me.common.IsPlayerReallyDead() then
       if event == "PLAYER_REGEN_ENABLED" then
-        me.logger.LogEvent(me.tag, "PLAYER_REGEN_ENABLED")
       elseif event == "PLAYER_UNGHOST" then
-        me.logger.LogEvent(me.tag, "PLAYER_UNGHOST")
       elseif event == "PLAYER_ALIVE" then
-        me.logger.LogEvent(me.tag, "PLAYER_ALIVE")
       end
 
       if initializationDone then
@@ -256,13 +243,11 @@ function me.OnEvent(event, ...)
         me.ticker.StartTickerCombatQueue()
       end
   elseif event == "PLAYER_REGEN_DISABLED" then
-    me.logger.LogEvent(me.tag, "PLAYER_REGEN_DISABLED")
 
     if initializationDone then
       me.ticker.StopTickerCombatQueue()
     end
   elseif event == "PLAYER_TARGET_CHANGED" then
-    me.logger.LogEvent(me.tag, "PLAYER_TARGET_CHANGED")
 
     if initializationDone then
       me.target.UpdateCurrentTarget()
