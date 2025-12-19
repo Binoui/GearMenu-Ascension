@@ -165,83 +165,67 @@ GearMenuConfiguration = {
 ]]--
 function me.SetupConfiguration()
   if GearMenuConfiguration.enableTooltips == nil then
-    mod.logger.LogInfo(me.tag, "enableTooltips has unexpected nil value")
     GearMenuConfiguration.enableTooltips = true
   end
 
   if GearMenuConfiguration.enableSimpleTooltips == nil then
-    mod.logger.LogInfo(me.tag, "enableSimpleTooltips has unexpected nil value")
     GearMenuConfiguration.enableSimpleTooltips = false
   end
 
   if GearMenuConfiguration.enableDragAndDrop == nil then
-    mod.logger.LogInfo(me.tag, "enableDragAndDrop has unexpected nil value")
     GearMenuConfiguration.enableDragAndDrop = true
   end
 
   if GearMenuConfiguration.enableFastPress == nil then
-    mod.logger.LogInfo(me.tag, "enableFastPress has unexpected nil value")
     GearMenuConfiguration.enableFastPress = false
   end
 
   if GearMenuConfiguration.enableUnequipSlot == nil then
-    mod.logger.LogInfo(me.tag, "enableUnequipSlot has unexpected nil value")
     GearMenuConfiguration.enableUnequipSlot = false
   end
 
   if GearMenuConfiguration.filterItemQuality == nil then
-    mod.logger.LogInfo(me.tag, "filterItemQuality has unexpected nil value")
     GearMenuConfiguration.filterItemQuality = 0
   end
 
   if GearMenuConfiguration.gearBars == nil then
-    mod.logger.LogInfo(me.tag, "gearBars has unexpected nil value")
     GearMenuConfiguration.gearBars = {}
   end
   
   -- Ensure firstTimeInitializationDone is initialized
   if GearMenuConfiguration.firstTimeInitializationDone == nil then
-    mod.logger.LogInfo(me.tag, "firstTimeInitializationDone has unexpected nil value")
     GearMenuConfiguration.firstTimeInitializationDone = false
   end
 
   if GearMenuConfiguration.quickChangeRules == nil then
-    mod.logger.LogInfo(me.tag, "quickChangeRules has unexpected nil value")
     GearMenuConfiguration.quickChangeRules = {}
   end
 
   if GearMenuConfiguration.frames == nil then
-    mod.logger.LogInfo(me.tag, "frames has unexpected nil value")
     GearMenuConfiguration.frames = {}
   end
 
   if GearMenuConfiguration.enableTrinketMenu == nil then
-    mod.logger.LogInfo(me.tag, "enableTrinketMenu has unexpected nil value")
     GearMenuConfiguration.enableTrinketMenu = true
   end
 
   if GearMenuConfiguration.lockTrinketMenuFrame == nil then
-    mod.logger.LogInfo(me.tag, "lockTrinketMenuFrame has unexpected nil value")
     GearMenuConfiguration.lockTrinketMenuFrame = false
   end
 
   if GearMenuConfiguration.trinketMenuShowCooldowns == nil then
-    mod.logger.LogInfo(me.tag, "trinketMenuShowCooldowns has unexpected nil value")
     GearMenuConfiguration.trinketMenuShowCooldowns = true
   end
 
   if GearMenuConfiguration.trinketMenuColumns == nil then
-    mod.logger.LogInfo(me.tag, "trinketMenuColumns has unexpected nil value")
     GearMenuConfiguration.trinketMenuColumns = RGGM_CONSTANTS.TRINKET_MENU_DEFAULT_COLUMN_AMOUNT
   end
 
   if GearMenuConfiguration.trinketMenuSlotSize == nil then
-    mod.logger.LogInfo(me.tag, "trinketMenuSlotSize has unexpected nil value")
     GearMenuConfiguration.trinketMenuSlotSize = RGGM_CONSTANTS.TRINKET_MENU_DEFAULT_SLOT_SIZE
   end
 
   if GearMenuConfiguration.uiTheme == nil then
-    mod.logger.LogInfo(me.tag, "uiTheme has unexpected nil value")
     GearMenuConfiguration.uiTheme = RGGM_CONSTANTS.UI_THEME_CUSTOM
   end
 
@@ -279,7 +263,6 @@ function me.SetAddonVersion()
   -- First time initialization: create default gearBar if none exists
   if #GearMenuConfiguration.gearBars == 0 and not GearMenuConfiguration.firstTimeInitializationDone then
     if mod.logger then
-      mod.logger.LogInfo(me.tag, "No gearBars found and firstTimeInitializationDone is false - creating default gearBar")
     end
     me.FirstTimeInitialization()
   else
@@ -304,7 +287,6 @@ end
 ]]--
 function me.FirstTimeInitialization()
   if mod.logger then
-    mod.logger.LogInfo(me.tag, "First initialization detected. Creating default gearBar")
   end
 
   -- Safety checks
@@ -344,7 +326,6 @@ function me.FirstTimeInitialization()
   GearMenuConfiguration.firstTimeInitializationDone = true
   
   if mod.logger then
-    mod.logger.LogInfo(me.tag, "Default gearBar created successfully with 3 slots")
   end
 end
 
@@ -455,7 +436,6 @@ function me.UpgradeToV2_0_0()
       local key = GetBindingKey("CLICK GM_GearBarSlot_" .. i .. ":LeftButton")
 
       if key ~= nil then
-        mod.logger.LogInfo(me.tag, "Slot with id{" .. i .. "} has keyBinding{" .. key .. "} set - attempting migration")
 
         SetBinding(key)
         SetBindingClick(

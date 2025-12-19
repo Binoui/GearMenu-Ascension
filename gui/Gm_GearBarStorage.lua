@@ -109,7 +109,6 @@ function me.RemoveGearBar(gearBarId)
     gearBar.gearBarReference:Hide()
     gearBarUiStorage[gearBarId] = nil
     if mod.logger then
-      mod.logger.LogInfo(me.tag, "Removed GearBar UI with id: " .. gearBarId)
     end
   else
     if mod.logger then

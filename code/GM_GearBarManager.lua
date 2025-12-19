@@ -65,7 +65,6 @@ function me.AddGearBar(gearBarName, addDefaultSlot)
   }
 
   table.insert(GearMenuConfiguration.gearBars, gearBar)
-  mod.logger.LogInfo(me.tag, "Created new GearBar with id: " .. gearBar.id)
 
   if addDefaultSlot then
     me.AddGearSlot(gearBar.id, true)
@@ -86,7 +85,6 @@ function me.RemoveGearBar(gearBarId)
     if gearBar and gearBar.id == gearBarId then
       table.remove(GearMenuConfiguration.gearBars, index)
       if mod.logger then
-        mod.logger.LogInfo(me.tag, "Removed GearBar with id: " .. gearBarId)
       else
       end
       return -- abort
@@ -103,7 +101,6 @@ function me.RemoveGearBar(gearBarId)
         GearMenuConfiguration.gearBars[index] = nil
       end
       if mod.logger then
-        mod.logger.LogInfo(me.tag, "Removed GearBar with id: " .. gearBarId)
       else
       end
       return

@@ -165,7 +165,6 @@ function me.GearSlotOnClick(self, button)
   if type(themeReference.GearSlotOnClick) == "function" then
     themeReference.GearSlotOnClick(self, button)
   else
-    mod.logger.LogInfo(me.tag, "No implementation for GearSlotOnClick in theme doing nothing...")
   end
 end
 
@@ -178,7 +177,6 @@ function me.GearSlotOnEnter(self)
   if type(themeReference.GearSlotOnEnter) == "function" then
     themeReference.GearSlotOnEnter(self)
   else
-    mod.logger.LogInfo(me.tag, "No implementation for GearSlotOnEnter in theme doing nothing...")
   end
 end
 
@@ -191,7 +189,6 @@ function me.GearSlotOnLeave(self)
   if type(themeReference.GearSlotOnLeave) == "function" then
     themeReference.GearSlotOnLeave(self)
   else
-    mod.logger.LogInfo(me.tag, "No implementation for GearSlotOnLeave in theme doing nothing...")
   end
 end
 
@@ -211,7 +208,6 @@ function me.ChangeSlotOnClick(self, button)
     themeReference.ChangeSlotOnClick(self, button)
   else
     if mod.logger then
-      mod.logger.LogInfo(me.tag, "No implementation for ChangeSlotOnClick in theme doing nothing...")
     end
   end
 end
@@ -225,7 +221,6 @@ function me.ChangeSlotOnEnter(self)
   if type(themeReference.ChangeSlotOnEnter) == "function" then
     themeReference.ChangeSlotOnEnter(self)
   else
-    mod.logger.LogInfo(me.tag, "No implementation for ChangeSlotOnEnter in theme doing nothing...")
   end
 end
 
@@ -238,7 +233,6 @@ function me.ChangeSlotOnLeave(self)
   if type(themeReference.ChangeSlotOnLeave) == "function" then
     themeReference.ChangeSlotOnLeave(self)
   else
-    mod.logger.LogInfo(me.tag, "No implementation for ChangeSlotOnLeave in theme doing nothing...")
   end
 end
 
@@ -251,7 +245,6 @@ function me.ChangeMenuSlotReset(changeMenuSlot)
   if type(themeReference.ChangeMenuSlotReset) == "function" then
     themeReference.ChangeMenuSlotReset(changeMenuSlot)
   else
-    mod.logger.LogInfo(me.tag, "No implementation for ChangeMenuSlotReset in theme doing nothing...")
   end
 end
 
@@ -265,7 +258,6 @@ function me.TrinketMenuSlotOnClick(self, button)
   if type(themeReference.TrinketMenuSlotOnClick) == "function" then
     themeReference.TrinketMenuSlotOnClick(self, button)
   else
-    mod.logger.LogInfo(me.tag, "No implementation for TrinketMenuSlotOnClick in theme doing nothing...")
   end
 end
 
@@ -278,7 +270,6 @@ function me.TrinketMenuSlotOnEnter(self)
   if type(themeReference.TrinketMenuSlotOnEnter) == "function" then
     themeReference.TrinketMenuSlotOnEnter(self)
   else
-    mod.logger.LogInfo(me.tag, "No implementation for TrinketMenuSlotOnEnter in theme doing nothing...")
   end
 end
 
@@ -291,7 +282,6 @@ function me.TrinketMenuSlotOnLeave(self)
   if type(themeReference.TrinketMenuSlotOnLeave) == "function" then
     themeReference.TrinketMenuSlotOnLeave(self)
   else
-    mod.logger.LogInfo(me.tag, "No implementation for TrinketMenuSlotOnLeave in theme doing nothing...")
   end
 end
 
@@ -304,6 +294,5 @@ function me.TrinketMenuSlotReset(trinketMenuSlot)
   if type(themeReference.TrinketMenuSlotReset) == "function" then
     themeReference.TrinketMenuSlotReset(trinketMenuSlot)
   else
-    mod.logger.LogInfo(me.tag, "No implementation for TrinketMenuSlotReset in theme doing nothing...")
   end
 end

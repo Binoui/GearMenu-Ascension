@@ -708,7 +708,6 @@ end
 ]]--
 function me.CreateNewGearSlot(gearBar, uiGearBar, position)
   -- create new gearSlot
-  mod.logger.LogInfo(me.tag, "GearSlot does not yet exist. Creating a new one")
 
   local gearSlot = me.CreateGearSlot(uiGearBar.gearBarReference, gearBar, position)
   mod.gearBarStorage.AddGearSlot(gearBar.id, gearSlot)
@@ -894,7 +893,6 @@ function me.GearSlotOnReceiveDrag(self)
       EquipCursorItem(gearSlotMetaData.slotId)
     end
   else
-    mod.logger.LogInfo(me.tag, "Invalid item for slotId - " .. gearSlotMetaData.slotId)
     ClearCursor() -- clear cursor from item
   end
 end

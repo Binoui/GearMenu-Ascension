@@ -76,7 +76,6 @@ function me.RemoveFromQueue(slotId)
 
   -- if no item is registered in queue for that specific slotId
   if itemId == nil then
-    mod.logger.LogInfo(me.tag, "No item in queue for slotId - " .. slotId)
     return
   end
 

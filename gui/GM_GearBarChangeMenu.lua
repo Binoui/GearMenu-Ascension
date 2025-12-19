@@ -126,7 +126,6 @@ function me.UpdateChangeSlots(changeSlotSize, gearSlotMetaData, items)
 
   for index = 1, #items, RGGM_CONSTANTS.GEAR_BAR_CHANGE_COLUMN_AMOUNT do
     if index > RGGM_CONSTANTS.GEAR_BAR_CHANGE_SLOT_AMOUNT_ITEMS then
-      mod.logger.LogInfo(me.tag, "All changeMenuSlots are in use skipping rest of items...")
       break
     end
 
@@ -278,20 +277,38 @@ function me.UpdateEmptyChangeSlot(changeMenu, itemCount, gearSlotMetaData, empty
   emptyChangeMenuSlot.itemId = nil
   emptyChangeMenuSlot.equipSlot = nil
   -- Set texture for the empty slot icon
-  if gearSlotMetaData.textureId and type(gearSlotMetaData.textureId) == "number" then
-    -- In WoW 3.3.5, SetTexture can accept texture IDs directly
-    -- If it doesn't work, we'll use a fallback texture
+  -- Try to get the icon from GetItemInfo using a dummy item of the slot type
+  -- First, try to get icon from GetItemInfo if we can find a sample item
+  local slotIcon = nil
+  if gearSlotMetaData.type and #gearSlotMetaData.type > 0 then
+    -- Try to get icon from GetItemInfo using the first inventory type
+    -- We'll use GetItemInfo with a known item ID for that slot type
+    -- But since we don't have an item, we'll use GetInventoryItemTexture as fallback
+    local itemTexture = GetInventoryItemTexture(RGGM_CONSTANTS.UNIT_ID_PLAYER, gearSlotMetaData.slotId)
+    if itemTexture then
+      slotIcon = itemTexture
+    end
+  end
+  
+  -- If we couldn't get an icon, try using the textureId directly
+  if not slotIcon and gearSlotMetaData.textureId then
+    -- In WoW 3.3.5, SetTexture can sometimes accept texture IDs directly
+    -- But it's unreliable, so we'll use a fallback
     local success = pcall(function()
       emptyChangeMenuSlot.itemTexture:SetTexture(gearSlotMetaData.textureId)
+      -- Check if texture was actually set
+      if emptyChangeMenuSlot.itemTexture:GetTexture() then
+        slotIcon = gearSlotMetaData.textureId
+      end
     end)
-    if not success or not emptyChangeMenuSlot.itemTexture:GetTexture() then
-      -- Fallback to a default icon if texture ID doesn't work
-      emptyChangeMenuSlot.itemTexture:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
+    if not success or not slotIcon then
+      slotIcon = "Interface\\Icons\\INV_Misc_QuestionMark"
     end
   else
-    -- Use default icon if textureId is missing or invalid
-    emptyChangeMenuSlot.itemTexture:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
+    slotIcon = slotIcon or "Interface\\Icons\\INV_Misc_QuestionMark"
   end
+  
+  emptyChangeMenuSlot.itemTexture:SetTexture(slotIcon)
   emptyChangeMenuSlot:Show()
 end
 

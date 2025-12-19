@@ -337,7 +337,6 @@ end
 ]]--
 function me.KeyBindingOnKey(self, key)
   if lockKeyBinding then
-    mod.logger.LogInfo(me.tag, "KeyBinding is already locked no further changes allowed")
     return
   end
 
@@ -374,7 +373,6 @@ function me.KeyBindingOnKey(self, key)
   me.UpdateDialogText(self)
   me.UpdateDialog(self)
 
-  mod.logger.LogInfo(me.tag, "Keybinding recorded: " .. recordedKeyBinding)
 end
 
 --[[
@@ -461,7 +459,6 @@ function me.SetKeyBinding(gearBarId, gearSlotPosition, keyBinding)
       This keybind is already in use somewhere. Make sure to log this information and reset
       the keybinding.
     ]]--
-    mod.logger.LogInfo(me.tag, "Keybinding is already in use: " .. action)
     StaticPopup_Show("RGPVPW_SET_KEYBIND_OVERRIDE")
   else
     mod.logger.LogDebug(me.tag, "Keybinding is not in use")
@@ -483,11 +480,9 @@ function me.UnsetKeyBinding(gearBarId, gearSlotPosition)
   local gearSlot = mod.gearBarManager.GetGearSlot(gearBarId, gearSlotPosition)
 
   if gearSlot.keyBinding == nil then
-    mod.logger.LogInfo(me.tag, "GearSlot has no keybinding set. Nothing to reset")
     return
   end
 
-  mod.logger.LogInfo(me.tag,
     "Keybinding - resetting gearBar{" .. gearBarId .. "}gearSlot{" .. gearSlotPosition .. "} keybind")
 
   mod.logger.LogDebug(me.tag, "Current keybinding before resetting: " .. gearSlot.keyBinding)
@@ -506,12 +501,10 @@ function me.UnsetKeyBindingFromGearSlot(gearSlot)
   local action = GetBindingAction(gearSlot.keyBinding)
 
   if action ~= "" and action ~= nil then
-    mod.logger.LogInfo(me.tag, "GearSlot has keyBinding set: " .. action)
 
     local match = string.match(action, RGGM_CONSTANTS.ELEMENT_GEAR_BAR_BASE_FRAME_NAME)
 
     if match then
-      mod.logger.LogInfo(me.tag, "Action found does match GearMenus keyBinding pattern. Removing...")
       SetBinding(gearSlot.keyBinding)
       me.SaveBindings()
     else
@@ -532,11 +525,9 @@ function me.SetKeyBindingToGearSlot(gearBarId, keyBinding, gearSlotPosition)
   local uiGearBar = mod.gearBarStorage.GetGearBar(gearBarId)
   local uiGearSlot = uiGearBar.gearSlotReferences[gearSlotPosition]
 
-  mod.logger.LogInfo(me.tag, "Set new keybinding " .. keyBinding .. " to " .. uiGearSlot:GetName())
   SetBinding(keyBinding) -- reset binding
 
   if SetBinding(keyBinding, "CLICK " .. uiGearSlot:GetName() .. ":LeftButton") then
-    mod.logger.LogInfo(me.tag, "Successfully changed keyBind")
     mod.gearBarManager.SetSlotKeyBinding(gearBarId, gearSlotPosition, keyBinding)
 
     -- update the configuration sub menu (show proper keyBinding after change)
@@ -567,7 +558,6 @@ function me.CleanupKeyBindingOnSlots(newGearBarId, newGearSlotPosition, keyBindi
     for position, gearSlot in pairs(gearBar.slots) do
       if gearBar.id ~= newGearBarId or position ~= newGearSlotPosition then
         if gearSlot.keyBinding == keyBinding then
-          mod.logger.LogInfo(
             me.tag, "Leftover keyBinding found - resetting {" .. gearBar.id .. "} slotPos {" .. position .. "}")
           mod.gearBarManager.SetSlotKeyBinding(gearBar.id, position, nil)
         end
@@ -619,7 +609,6 @@ end
   a reload of WoW
 ]]--
 function me.SaveBindings()
-  mod.logger.LogInfo(me.tag, "Attempting to save bindings in - " .. GetCurrentBindingSet())
   SaveBindings(GetCurrentBindingSet())
 end
 
@@ -667,7 +656,6 @@ function me.OnUpdateKeyBindings()
         local action = GetBindingAction(gearSlot.keyBinding)
 
         if action == nil or action == "" then
-          mod.logger.LogInfo(me.tag, "Found a gearBar keyBinding that is not actually set. Resetting keyBind")
           mod.gearBarManager.SetSlotKeyBinding(gearBars[i].id, position, nil)
         end
       end

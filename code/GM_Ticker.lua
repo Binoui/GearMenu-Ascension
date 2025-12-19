@@ -44,7 +44,6 @@ function me.StartTickerChangeMenu()
   if changeMenuTicker == nil or changeMenuTicker:IsCancelled() then
     changeMenuTicker = C_Timer.NewTicker(
       RGGM_CONSTANTS.CHANGE_MENU_UPDATE_INTERVAL, mod.gearBarChangeMenu.ChangeMenuOnUpdate)
-      mod.logger.LogInfo(me.tag, "Started 'ChangeMenuTicker'")
   end
 end
 
@@ -54,7 +53,6 @@ end
 function me.StopTickerChangeMenu()
   if changeMenuTicker then
     changeMenuTicker:Cancel()
-    mod.logger.LogInfo(me.tag, "Stopped 'ChangeMenuTicker'")
   end
 end
 --[[
@@ -64,7 +62,6 @@ function me.StartTickerCombatQueue()
   if combatQueueTicker == nil or combatQueueTicker:IsCancelled() then
     combatQueueTicker = C_Timer.NewTicker(
       RGGM_CONSTANTS.COMBAT_QUEUE_UPDATE_INTERVAL, mod.combatQueue.ProcessQueue)
-      mod.logger.LogInfo(me.tag, "Started 'CombatQueueTicker'")
   end
 end
 
@@ -74,7 +71,6 @@ end
 function me.StopTickerCombatQueue()
   if combatQueueTicker then
     combatQueueTicker:Cancel()
-    mod.logger.LogInfo(me.tag, "Stopped 'CombatQueueTicker'")
   end
 end
 
@@ -85,7 +81,6 @@ local function StartTickerRangeCheck()
   if rangeCheckTicker == nil or rangeCheckTicker:IsCancelled() then
     rangeCheckTicker = C_Timer.NewTicker(
       RGGM_CONSTANTS.RANGE_CHECK_UPDATE_INTERVAL, mod.gearBar.UpdateSpellRange)
-      mod.logger.LogInfo(me.tag, "Started 'StartTickerRangeCheck'")
   end
 end
 
@@ -95,7 +90,6 @@ end
 local function StopTickerRangeCheck()
   if rangeCheckTicker then
     rangeCheckTicker:Cancel()
-    mod.logger.LogInfo(me.tag, "Stopped 'StopTickerRangeCheck'")
   end
 end
 
