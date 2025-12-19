@@ -528,13 +528,37 @@ end
   @param {table} gearSlotMetaData
 ]]--
 function me.UpdateGearSlotTexture(gearSlot, gearSlotMetaData)
-  -- In WoW 3.3.5, GetInventoryItemTexture is more reliable than GetItemInfo
-  -- as it doesn't require the item to be cached
-  local itemTexture = GetInventoryItemTexture(RGGM_CONSTANTS.UNIT_ID_PLAYER, gearSlotMetaData.slotId)
+  -- Get the real itemId from the inventory link (not transmog)
+  local itemLink = GetInventoryItemLink(RGGM_CONSTANTS.UNIT_ID_PLAYER, gearSlotMetaData.slotId)
+  local itemId = nil
+  
+  if itemLink then
+    -- Extract itemId from item link: "item:itemId:enchantId:gemId1:gemId2:gemId3:gemId4:suffixId:uniqueId:linkLevel:specializationId:modifiersMask:itemContext"
+    local _, _, id = string.find(itemLink, "item:(%d+):")
+    if id then
+      itemId = tonumber(id)
+    end
+  end
+  
+  -- Fallback to GetInventoryItemID if link parsing fails
+  if not itemId then
+    itemId = GetInventoryItemID(RGGM_CONSTANTS.UNIT_ID_PLAYER, gearSlotMetaData.slotId)
+  end
 
-  if itemTexture then
-    -- If an actual item was found in the inventoryslot, use its texture
-    gearSlot.itemTexture:SetTexture(itemTexture)
+  if itemId then
+    -- Get the icon from GetItemInfo using the real itemId (not transmog)
+    local _, _, _, _, _, _, _, _, _, itemIcon = GetItemInfo(itemId)
+    if itemIcon then
+      gearSlot.itemTexture:SetTexture(itemIcon)
+    else
+      -- If GetItemInfo fails, fallback to GetInventoryItemTexture
+      local itemTexture = GetInventoryItemTexture(RGGM_CONSTANTS.UNIT_ID_PLAYER, gearSlotMetaData.slotId)
+      if itemTexture then
+        gearSlot.itemTexture:SetTexture(itemTexture)
+      else
+        gearSlot.itemTexture:SetTexture(gearSlotMetaData.textureId)
+      end
+    end
   else
     -- If no item can be found in the inventoryslot use the default icon
     gearSlot.itemTexture:SetTexture(gearSlotMetaData.textureId)
