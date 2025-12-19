@@ -1,0 +1,20 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/..\..\FrameXML\UI.xsd">
+  <!-- MainFrame -->
+  <Frame name="GM_MainFrame" parent="UIParent" hidden="true">
+    <Scripts>
+      <OnLoad>
+        print("|cFF00FFB0GearMenu:|r XML Frame OnLoad triggered")
+        if rggm and rggm.OnLoad then
+          rggm.OnLoad(self)
+        else
+          print("|cffff0000GearMenu Error:|r rggm.OnLoad not found!")
+        end
+      </OnLoad>
+      <OnEvent>
+        if rggm and rggm.OnEvent then
+          rggm.OnEvent(event, ...)
+        end
+      </OnEvent>
+    </Scripts>
+  </Frame>
+</Ui>

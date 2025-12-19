@@ -1,0 +1,378 @@
+--[[
+  MIT License
+
+  Copyright (c) 2023 Michael Wiesendanger
+
+  Permission is hereby granted, free of charge, to any person obtaining
+  a copy of this software and associated documentation files (the
+  "Software"), to deal in the Software without restriction, including
+  without limitation the rights to use, copy, modify, merge, publish,
+  distribute, sublicense, and/or sell copies of the Software, and to
+  permit persons to whom the Software is furnished to do so, subject to
+  the following conditions:
+
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+  LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+]]--
+
+-- luacheck: globals GetAddOnMetadata ChannelInfo C_Timer
+
+-- Initialize rggm namespace if it doesn't exist
+rggm = rggm or {}
+local me = rggm
+
+me.tag = "Core"
+
+-- Ensure the main frame exists (created by XML)
+-- This will be set when the XML frame loads
+me.mainFrame = nil
+
+-- Debug: Print when core module loads (helps diagnose loading issues)
+if not me._loaded then
+  me._loaded = true
+  -- This will print when the file is first loaded
+  print("|cFF00FFB0GearMenu:|r Core module loaded")
+end
+
+local initializationDone = false
+local hasInitialized = false -- Track if we've already initialized
+
+--[[
+  Hook GetLocale to return a fixed value. This is used for testing only.
+]]--
+
+--[[
+local _G = getfenv(0)
+
+function _G.GetLocale()
+  return "[language code]"
+end
+]]--
+
+--[[
+  Addon load
+
+  @param {table} self
+]]--
+function me.OnLoad(self)
+  -- Store reference to main frame
+  me.mainFrame = self
+  
+  -- Register events
+  me.RegisterEvents(self)
+  
+  -- Debug: confirm frame loaded (print to chat for visibility)
+  print("|cFF00FFB0GearMenu:|r Main frame loaded successfully")
+  
+  if me.logger then
+    me.logger.LogDebug(me.tag, "Main frame loaded")
+  end
+end
+
+--[[
+  Register addon events
+
+  @param {table} self
+]]--
+function me.RegisterEvents(self)
+  -- Fired when the player logs in, /reloads the UI, or zones between map instances
+  self:RegisterEvent("PLAYER_ENTERING_WORLD")
+  -- Fires when a bags inventory changes
+  self:RegisterEvent("BAG_UPDATE")
+  -- Fires when the player equips or unequips an item
+  self:RegisterEvent("UNIT_INVENTORY_CHANGED")
+  -- Fires when the player leaves combat status
+  self:RegisterEvent("PLAYER_REGEN_ENABLED")
+  -- Fires when the player enters combat status
+  self:RegisterEvent("PLAYER_REGEN_DISABLED")
+  -- Fires when a player resurrects after being in spirit form
+  self:RegisterEvent("PLAYER_UNGHOST")
+  -- Fires when the player's spirit is released after death or when the player accepts a resurrection without releasing
+  self:RegisterEvent("PLAYER_ALIVE")
+  -- Fires when a cooldown update call is sent to a bag
+  self:RegisterEvent("BAG_UPDATE_COOLDOWN")
+  -- Fires when the keybindings are changed.
+  self:RegisterEvent("UPDATE_BINDINGS")
+  -- Fires when a spell is cast successfully. Event is received even if spell is resisted.
+  self:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+  -- Fires when a unit's spellcast is interrupted
+  self:RegisterEvent("UNIT_SPELLCAST_INTERRUPTED")
+  -- Fires when the player is affected by some sort of control loss
+  -- Note: These events may not exist in 3.3.5, but registering them is safe
+  self:RegisterEvent("LOSS_OF_CONTROL_ADDED")
+  self:RegisterEvent("LOSS_OF_CONTROL_UPDATE")
+  -- Register to the event that fires when the players target changes
+  self:RegisterEvent("PLAYER_TARGET_CHANGED")
+  -- Fired when a unit stops channeling
+  self:RegisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
+end
+
+--[[
+  MainFrame OnEvent handler
+
+  @param {string} event
+  @param {table} vararg
+]]--
+function me.OnEvent(event, ...)
+  if event == "PLAYER_ENTERING_WORLD" then
+    if me.logger then
+      me.logger.LogEvent(me.tag, "PLAYER_ENTERING_WORLD")
+    end
+
+    -- In WoW 3.3.5, PLAYER_ENTERING_WORLD may not have the same parameters
+    -- Initialize on first PLAYER_ENTERING_WORLD event if not already done
+    if not hasInitialized then
+      hasInitialized = true
+      
+      -- Delay initialization slightly to ensure all modules are loaded
+      if C_Timer and C_Timer.After then
+        C_Timer.After(0.5, function()
+          me.Initialize()
+        end)
+      else
+        -- Fallback if C_Timer not available - use a simple frame timer
+        local frame = CreateFrame("Frame")
+        frame.elapsed = 0
+        frame:SetScript("OnUpdate", function(self, elapsed)
+          self.elapsed = self.elapsed + elapsed
+          if self.elapsed >= 0.5 then
+            self:SetScript("OnUpdate", nil)
+            self:Hide()
+            me.Initialize()
+          end
+        end)
+        frame:Show()
+      end
+    end
+  elseif event == "BAG_UPDATE" then
+    me.logger.LogEvent(me.tag, "BAG_UPDATE")
+
+    if initializationDone then
+      -- trigger UpdateChangeMenu again to update items after an item was equipped
+      if _G[RGGM_CONSTANTS.ELEMENT_GEAR_BAR_CHANGE_FRAME]:IsVisible() then
+        me.gearBarChangeMenu.UpdateChangeMenu()
+      end
+
+      if me.configuration.IsTrinketMenuEnabled() then
+        me.trinketMenu.UpdateTrinketMenu()
+      end
+    end
+  elseif event == "UNIT_INVENTORY_CHANGED" then
+    me.logger.LogEvent(me.tag, "UNIT_INVENTORY_CHANGED")
+    local unit = ...
+
+    if unit == RGGM_CONSTANTS.UNIT_ID_PLAYER and initializationDone then
+      me.gearBar.UpdateGearBars(me.gearBar.UpdateGearBarVisual)
+      if me.configuration.IsTrinketMenuEnabled() then
+        me.trinketMenu.UpdateTrinketMenu()
+      end
+    end
+  elseif event == "BAG_UPDATE_COOLDOWN" then
+    me.logger.LogEvent(me.tag, "BAG_UPDATE_COOLDOWN")
+
+    if initializationDone then
+      me.gearBar.UpdateGearBars(me.gearBar.UpdateGearBarGearSlotCooldowns)
+      if me.configuration.IsTrinketMenuEnabled() then
+        me.trinketMenu.UpdateTrinketMenuSlotCooldowns()
+      end
+    end
+  elseif event == "UPDATE_BINDINGS" then
+    me.logger.LogEvent(me.tag, "UPDATE_BINDINGS")
+
+    --[[
+      On starting up the addon often times GetBindingAction will not return the correct keybinding set but rather an
+      empty string. To prevent this a slight delay is required.
+
+      In case GetBindingAction returns an empty string GearMenu will loose the connection of its keybind. This means
+      that GearMenu is unable to show the shortcuts in the GearBar anymore but the keybinds will continue to work.
+    ]]--
+    -- Only process keybind updates if initialization is done
+    if initializationDone and me.keyBind and me.keyBind.OnUpdateKeyBindings then
+      if C_Timer and C_Timer.After then
+        C_Timer.After(RGGM_CONSTANTS.KEYBIND_UPDATE_DELAY, me.keyBind.OnUpdateKeyBindings)
+      else
+        -- Fallback if C_Timer not available
+        me.keyBind.OnUpdateKeyBindings()
+      end
+    else
+      me.logger.LogDebug(me.tag, "Skipping UPDATE_BINDINGS - initialization not complete")
+    end
+  elseif event == "LOSS_OF_CONTROL_ADDED" then
+    me.logger.LogEvent(me.tag, "LOSS_OF_CONTROL_ADDED")
+
+    if initializationDone then
+      me.combatQueue.UpdateEquipChangeBlockStatus()
+    end
+  elseif event == "LOSS_OF_CONTROL_UPDATE" then
+    me.logger.LogEvent(me.tag, "LOSS_OF_CONTROL_UPDATE")
+
+    if initializationDone then
+      me.combatQueue.UpdateEquipChangeBlockStatus()
+    end
+  -- Note: LOSS_OF_CONTROL events may not exist in 3.3.5, but we handle them gracefully if they do
+  elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+    me.logger.LogEvent(me.tag, "UNIT_SPELLCAST_SUCCEEDED")
+    local unit = ...
+
+    if initializationDone then
+      local channelledSpell = ChannelInfo(RGGM_CONSTANTS.UNIT_ID_PLAYER)
+
+      if unit == RGGM_CONSTANTS.UNIT_ID_PLAYER and not channelledSpell then
+        me.quickChange.OnUnitSpellCastSucceeded(...)
+        me.combatQueue.ProcessQueue()
+      end
+    end
+  elseif event == "UNIT_SPELLCAST_INTERRUPTED" then
+    me.logger.LogEvent(me.tag, "UNIT_SPELLCAST_INTERRUPTED")
+
+    local unit = ...
+
+    if unit == RGGM_CONSTANTS.UNIT_ID_PLAYER and initializationDone then
+      me.combatQueue.ProcessQueue()
+    end
+  elseif event == "UNIT_SPELLCAST_CHANNEL_STOP" then
+    me.logger.LogEvent(me.tag, "UNIT_SPELLCAST_CHANNEL_STOP")
+
+    local unit = ...
+
+    if unit == RGGM_CONSTANTS.UNIT_ID_PLAYER and initializationDone then
+      me.combatQueue.ProcessQueue()
+    end
+  elseif (event == "PLAYER_REGEN_ENABLED" or event == "PLAYER_UNGHOST" or event == "PLAYER_ALIVE")
+    and not me.common.IsPlayerReallyDead() then
+      if event == "PLAYER_REGEN_ENABLED" then
+        me.logger.LogEvent(me.tag, "PLAYER_REGEN_ENABLED")
+      elseif event == "PLAYER_UNGHOST" then
+        me.logger.LogEvent(me.tag, "PLAYER_UNGHOST")
+      elseif event == "PLAYER_ALIVE" then
+        me.logger.LogEvent(me.tag, "PLAYER_ALIVE")
+      end
+
+      if initializationDone then
+        -- player is alive again or left combat - work through all combat queues
+        me.ticker.StartTickerCombatQueue()
+      end
+  elseif event == "PLAYER_REGEN_DISABLED" then
+    me.logger.LogEvent(me.tag, "PLAYER_REGEN_DISABLED")
+
+    if initializationDone then
+      me.ticker.StopTickerCombatQueue()
+    end
+  elseif event == "PLAYER_TARGET_CHANGED" then
+    me.logger.LogEvent(me.tag, "PLAYER_TARGET_CHANGED")
+
+    if initializationDone then
+      me.target.UpdateCurrentTarget()
+    end
+  end
+end
+
+--[[
+  Initialize addon
+]]--
+function me.Initialize()
+  -- Safety check: ensure logger exists
+  if not me.logger then
+    print("|cffff0000GearMenu Error:|r Logger not initialized!")
+    return
+  end
+  
+  -- Wrap initialization in error handler
+  local success, err = pcall(function()
+    me.logger.LogDebug(me.tag, "Initialize addon")
+    
+    -- Debug: List all available modules
+    print("|cFF00FFB0GearMenu Debug:|r Checking modules...")
+    local modules = {"cmd", "configuration", "addonConfiguration", "themeCoordinator", "gearBar", "gearBarChangeMenu", "trinketMenu", "combatQueue", "itemManager", "gearManager", "gearBarManager", "quickChange", "target", "tooltip", "filter", "ticker", "common", "macro", "keyBind"}
+    for _, modName in ipairs(modules) do
+      if me[modName] then
+        print("|cFF00FF00  ✓|r " .. modName .. " loaded")
+      else
+        print("|cffff0000  ✗|r " .. modName .. " MISSING")
+      end
+    end
+    
+    -- Check all required modules exist
+    if not me.cmd then
+      error("Command module (cmd) not initialized")
+    end
+    if not me.configuration then
+      error("Configuration module not initialized")
+    end
+    if not me.addonConfiguration then
+      error("AddonConfiguration module not initialized")
+    end
+    if not me.themeCoordinator then
+      error("ThemeCoordinator module not initialized")
+    end
+    if not me.gearBar then
+      error("GearBar module not initialized")
+    end
+    if not me.gearBarChangeMenu then
+      error("GearBarChangeMenu module not initialized")
+    end
+    
+    -- setup slash commands
+    me.cmd.SetupSlashCmdList()
+    -- load addon variables
+    me.configuration.SetupConfiguration()
+    -- setup addon configuration ui
+    me.addonConfiguration.SetupAddonConfiguration()
+    -- sync up theme (needs to be happening before accessing ui elements)
+    me.themeCoordinator.UpdateTheme()
+    -- build ui for all gearBars
+    me.gearBar.BuildGearBars()
+    -- build ui for changeMenu
+    me.gearBarChangeMenu.BuildChangeMenu()
+    -- update initial view of gearBars after addon initialization
+    me.gearBar.UpdateGearBars(me.gearBar.UpdateGearBarVisual)
+
+    if me.configuration.IsTrinketMenuEnabled() then
+      -- build ui for trinketMenu
+      if me.trinketMenu then
+        me.trinketMenu.BuildTrinketMenu()
+        -- update initial view of trinketMenu
+        me.trinketMenu.UpdateTrinketMenu()
+      end
+    end
+
+    -- initialization is done
+    initializationDone = true
+
+    me.ShowWelcomeMessage()
+  end)
+  
+  if not success then
+    local errorMsg = "|cffff0000GearMenu Initialization Error:|r " .. tostring(err)
+    print(errorMsg)
+    print("|cffff0000GearMenu:|r Stack trace:")
+    print(debug.traceback())
+    if me.logger then
+      me.logger.LogError(me.tag, "Initialization failed: " .. tostring(err))
+    end
+    -- Try to show error in chat
+    if DEFAULT_CHAT_FRAME then
+      DEFAULT_CHAT_FRAME:AddMessage(errorMsg)
+    end
+  else
+    print("|cFF00FF00GearMenu:|r Initialization completed successfully!")
+  end
+end
+
+--[[
+  Show welcome message to user
+]]--
+function me.ShowWelcomeMessage()
+  local version = GetAddOnMetadata(RGGM_CONSTANTS.ADDON_NAME, "Version") or "Unknown"
+  print(
+    string.format("|cFF00FFB0" .. RGGM_CONSTANTS.ADDON_NAME .. "|r " .. rggm.L["help"], version)
+  )
+end
