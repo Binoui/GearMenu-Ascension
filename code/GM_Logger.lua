@@ -32,9 +32,6 @@ mod.logger = me
 
 me.tag = "Logger"
 
--- Debug: confirm logger loaded
-print("|cFF00FFB0GearMenu:|r Logger module loaded")
-
 --[[
   LogLevels {number}
 

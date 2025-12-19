@@ -56,20 +56,16 @@ function me.BuildGearBars()
   local gearBars = mod.gearBarManager.GetGearBars()
   
   if not gearBars or #gearBars == 0 then
-    print("|cFF00FFB0GearMenu:|r No gearBars to build")
     return
   end
   
-  print("|cFF00FFB0GearMenu:|r Building " .. #gearBars .. " gearBar(s)...")
 
   for _, gearBar in pairs(gearBars) do
     if gearBar then
-      print("|cFF00FFB0GearMenu:|r Building gearBar: " .. (gearBar.displayName or "unnamed") .. " (id: " .. gearBar.id .. ", slots: " .. (#gearBar.slots or 0) .. ")")
       me.BuildGearBar(gearBar)
     end
   end
   
-  print("|cFF00FF00GearMenu:|r Finished building gearBars")
 end
 
 --[[
@@ -82,7 +78,6 @@ end
 ]]--
 function me.BuildGearBar(gearBar)
   if not gearBar or not gearBar.id then
-    print("|cffff0000GearMenu Error:|r Invalid gearBar data")
     return nil
   end
   
@@ -95,7 +90,6 @@ function me.BuildGearBar(gearBar)
   )
   
   if not gearBarFrame then
-    print("|cffff0000GearMenu Error:|r Failed to create frame: " .. frameName)
     return nil
   end
   
@@ -127,13 +121,11 @@ function me.BuildGearBar(gearBar)
   -- store ui element reference
   mod.gearBarStorage.AddGearBar(gearBar.id, gearBarFrame)
   
-  print("|cFF00FFB0GearMenu:|r Created gearBar frame: " .. frameName .. " (slots: " .. (#gearBar.slots or 0) .. ")")
 
   -- Create slots if any exist
   if gearBar.slots and #gearBar.slots > 0 then
     me.CreateGearSlots(gearBarFrame, gearBar)
   else
-    print("|cffff0000GearMenu Warning:|r GearBar " .. gearBar.id .. " has no slots!")
   end
   
   me.SetupDragFrame(gearBarFrame)
@@ -144,13 +136,10 @@ function me.BuildGearBar(gearBar)
   
   -- Ensure the frame is visible and has a visible size
   local finalWidth, finalHeight = gearBarFrame:GetSize()
-  print("|cFF00FFB0GearMenu:|r GearBar frame size: " .. finalWidth .. "x" .. finalHeight)
   
   if finalWidth > 0 and finalHeight > 0 then
     gearBarFrame:Show()
-    print("|cFF00FF00GearMenu:|r GearBar frame shown: " .. frameName)
   else
-    print("|cffff0000GearMenu Error:|r GearBar frame has zero size, cannot show!")
   end
 
   return gearBarFrame
@@ -165,20 +154,16 @@ end
 ]]--
 function me.CreateGearSlots(gearBarFrame, gearBar)
   if not gearBar.slots or #gearBar.slots == 0 then
-    print("|cffff0000GearMenu Warning:|r GearBar " .. gearBar.id .. " has no slots to create")
     return
   end
   
-  print("|cFF00FFB0GearMenu:|r Creating " .. #gearBar.slots .. " slots for gearBar " .. gearBar.id)
   
   for i = 1, #gearBar.slots do
     local gearSlot = me.CreateGearSlot(gearBarFrame, gearBar, i)
     if gearSlot then
       -- store ui element reference
       mod.gearBarStorage.AddGearSlot(gearBar.id, gearSlot)
-      print("|cFF00FF00GearMenu:|r Created slot " .. i .. " for gearBar " .. gearBar.id)
     else
-      print("|cffff0000GearMenu Error:|r Failed to create slot " .. i .. " for gearBar " .. gearBar.id)
     end
   end
 end
@@ -376,7 +361,6 @@ function me.UpdateGearBarSize(gearBar)
     if mod.logger then
       mod.logger.LogError(me.tag, "Cannot update size - gearBar UI not found for id: " .. gearBar.id)
     else
-      print("|cffff0000GearMenu Error:|r Cannot update size - gearBar UI not found for id: " .. gearBar.id)
     end
     return
   end
@@ -395,7 +379,6 @@ function me.UpdateGearBarSize(gearBar)
   uiGearBar.gearBarReference:SetWidth(width)
   uiGearBar.gearBarReference:SetHeight(height)
   
-  print("|cFF00FFB0GearMenu:|r Updated gearBar size: " .. width .. "x" .. height .. " (slots: " .. slotCount .. ", slotSize: " .. slotSize .. ")")
 end
 
 --[[
@@ -658,7 +641,6 @@ function me.UpdateGearBarGearSlots(gearBar)
       if mod.logger then
         mod.logger.LogError(me.tag, "Failed to build GearBar UI for id: " .. gearBar.id)
       else
-        print("|cffff0000GearMenu Error:|r Failed to build GearBar UI for id: " .. gearBar.id)
       end
       return
     end

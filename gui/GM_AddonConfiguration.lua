@@ -112,11 +112,11 @@ end
   Create addon configuration menu(s)
 ]]--
 function me.SetupAddonConfiguration()
-  print("|cFF00FFB0GearMenu:|r Setting up addon configuration panel...")
-  
   -- Safety check: ensure all required modules exist
   if not mod.aboutContent then
-    print("|cffff0000GearMenu Error:|r aboutContent module not loaded")
+    if mod.logger then
+      mod.logger.LogError(me.tag, "aboutContent module not loaded")
+    end
     return
   end
   
@@ -124,25 +124,20 @@ function me.SetupAddonConfiguration()
   local category, menu = me.BuildCategory(RGGM_CONSTANTS.ELEMENT_ADDON_PANEL, nil, rggm.L["addon_name"])
   
   if not category or not menu then
-    print("|cffff0000GearMenu Error:|r Failed to create main category")
+    if mod.logger then
+      mod.logger.LogError(me.tag, "Failed to create main category")
+    end
     return
   end
-  
-  print("|cFF00FF00GearMenu:|r Main category created, mainCategoryId = " .. tostring(mainCategoryId))
   
   -- Ensure the menu frame is properly sized for Interface Options
   if menu then
     menu:SetAllPoints(InterfaceOptionsFramePanelContainer)
-    print("|cFF00FF00GearMenu:|r Menu frame configured")
   end
   
   -- add about content into main category
   if menu and mod.aboutContent and mod.aboutContent.BuildAboutContent then
-    print("|cFF00FF00GearMenu:|r Building about content...")
     mod.aboutContent.BuildAboutContent(menu)
-    print("|cFF00FF00GearMenu:|r About content built")
-  else
-    print("|cffff0000GearMenu Error:|r Cannot build about content - menu or aboutContent missing")
   end
 
   -- Build subcategories (these will be separate panels in 3.3.5)
@@ -154,7 +149,6 @@ function me.SetupAddonConfiguration()
   )
   if generalMenu then
     generalMenu:SetAllPoints(InterfaceOptionsFramePanelContainer)
-    print("|cFF00FF00GearMenu:|r General options category created")
   end
   
   local trinketCategory, trinketMenu = me.BuildCategory(
@@ -165,7 +159,6 @@ function me.SetupAddonConfiguration()
   )
   if trinketMenu then
     trinketMenu:SetAllPoints(InterfaceOptionsFramePanelContainer)
-    print("|cFF00FF00GearMenu:|r Trinket menu category created")
   end
   
   local quickChangeCategory, quickChangeMenu = me.BuildCategory(
@@ -176,7 +169,6 @@ function me.SetupAddonConfiguration()
   )
   if quickChangeMenu then
     quickChangeMenu:SetAllPoints(InterfaceOptionsFramePanelContainer)
-    print("|cFF00FF00GearMenu:|r Quick change category created")
   end
   
   local gearBarConfigurationSubCategory, gearBarConfigMenu = me.BuildCategory(
@@ -187,11 +179,9 @@ function me.SetupAddonConfiguration()
   )
   if gearBarConfigMenu then
     gearBarConfigMenu:SetAllPoints(InterfaceOptionsFramePanelContainer)
-    print("|cFF00FF00GearMenu:|r Gear bar configuration category created")
     -- Store the display name for sub-subcategories (individual gearBars)
     -- Use the actual menu.name which is what WoW 3.3.5 uses for parent matching
     gearBarConfigCategoryName = gearBarConfigMenu.name or rggm.L["gear_bar_configuration_panel_text"]
-    print("|cFF00FF00GearMenu:|r Stored gearBarConfigCategoryName: " .. tostring(gearBarConfigCategoryName))
   end
   -- Store subcategory ID (may be nil in 3.3.5, that's OK)
   if gearBarConfigurationSubCategory and gearBarConfigurationSubCategory.ID then
@@ -200,7 +190,6 @@ function me.SetupAddonConfiguration()
     -- In 3.3.5, subcategories don't have IDs, use frame name
     gearBarSubCategoryId = RGGM_CONSTANTS.ELEMENT_GEAR_BAR_CONFIG_GEAR_BAR_CONFIG_FRAME
   end
-  print("|cFF00FF00GearMenu:|r Gear bar subcategory ID: " .. tostring(gearBarSubCategoryId))
   --[[
    load configured gearBars after the menu RGGM_CONSTANTS.ELEMENT_GEAR_BAR_CONFIG_GEAR_BAR_CONFIG_FRAME was
    created to attach to
@@ -208,11 +197,7 @@ function me.SetupAddonConfiguration()
   -- Safety check: ensure gearBarConfigurationMenu exists before calling
   if mod.gearBarConfigurationMenu and mod.gearBarConfigurationMenu.LoadConfiguredGearBars then
     mod.gearBarConfigurationMenu.LoadConfiguredGearBars()
-  else
-    print("|cffff0000GearMenu Error:|r gearBarConfigurationMenu not available")
   end
-  
-  print("|cFF00FF00GearMenu:|r Addon configuration panel setup completed")
 end
 
 --[[
@@ -251,13 +236,11 @@ function me.BuildCategory(frameName, parent, panelText, onShowCallback)
     if parent == nil then
       -- Check if InterfaceOptionsFramePanelContainer exists
       if not InterfaceOptionsFramePanelContainer then
-        print("|cffff0000GearMenu Error:|r InterfaceOptionsFramePanelContainer not available")
         return nil, nil
       end
       
       menu = CreateFrame("Frame", frameName, InterfaceOptionsFramePanelContainer)
       if not menu then
-        print("|cffff0000GearMenu Error:|r Failed to create frame " .. frameName)
         return nil, nil
       end
       
@@ -268,17 +251,14 @@ function me.BuildCategory(frameName, parent, panelText, onShowCallback)
       mainCategoryName = panelText -- Store display name for subcategories
       mainCategoryFrameName = frameName -- Store frame name for subcategories
       category = { ID = frameName, name = panelText }
-      print("|cFF00FF00GearMenu:|r Created main category: " .. frameName .. " (ID: " .. tostring(mainCategoryId) .. ", Name: " .. panelText .. ")")
     else
       -- For subcategories in 3.3.5, create them as separate panels with parent name
       if not InterfaceOptionsFramePanelContainer then
-        print("|cffff0000GearMenu Error:|r InterfaceOptionsFramePanelContainer not available for subcategory")
         return nil, nil
       end
       
       menu = CreateFrame("Frame", frameName, InterfaceOptionsFramePanelContainer)
       if not menu then
-        print("|cffff0000GearMenu Error:|r Failed to create subcategory frame " .. frameName)
         return nil, nil
       end
       
@@ -291,20 +271,16 @@ function me.BuildCategory(frameName, parent, panelText, onShowCallback)
       if parent and parent.name then
         -- Use the parent's name if provided (for sub-subcategories)
         parentName = parent.name
-        print("|cFF00FF00GearMenu:|r Using parent.name for subcategory: " .. tostring(parentName))
       elseif mainCategoryName then
         -- Fallback to main category name (for regular subcategories)
         parentName = mainCategoryName
-        print("|cFF00FF00GearMenu:|r Using mainCategoryName for subcategory: " .. tostring(parentName))
       end
       
       if parentName then
         menu.parent = parentName
         InterfaceOptions_AddCategory(menu)
-        print("|cFF00FF00GearMenu:|r Created subcategory: " .. panelText .. " with parent: " .. parentName)
       else
         InterfaceOptions_AddCategory(menu)
-        print("|cffff0000GearMenu Warning:|r No parent name available, subcategory created without parent")
       end
       
       category = { name = panelText, ID = frameName }
@@ -314,7 +290,6 @@ function me.BuildCategory(frameName, parent, panelText, onShowCallback)
   if onShowCallback ~= nil then
     -- Wrap callback to ensure it's called
     menu:SetScript("OnShow", function(self)
-      print("|cFF00FFB0GearMenu:|r OnShow triggered for " .. (panelText or "unknown"))
       onShowCallback(self)
     end)
   end
@@ -332,24 +307,21 @@ end
   Open the Blizzard addon configurations panel for the addon
 ]]--
 function me.OpenMainCategory()
-  print("|cFF00FFB0GearMenu:|r Opening configuration panel...")
-  
   -- Check if panel was initialized
   if not mainCategoryId then
-    print("|cffff0000GearMenu Error:|r mainCategoryId is nil - panel not initialized")
-    print("|cffff0000GearMenu:|r Attempting to initialize panel now...")
-    
     -- Try to initialize if not done
     if mod.addonConfiguration and mod.addonConfiguration.SetupAddonConfiguration then
       mod.addonConfiguration.SetupAddonConfiguration()
-      if mainCategoryId then
-        print("|cFF00FF00GearMenu:|r Panel initialized successfully")
-      else
-        print("|cffff0000GearMenu Error:|r Failed to initialize panel")
+      if not mainCategoryId then
+        if mod.logger then
+          mod.logger.LogError(me.tag, "Failed to initialize panel")
+        end
         return
       end
     else
-      print("|cffff0000GearMenu Error:|r SetupAddonConfiguration function not available")
+      if mod.logger then
+        mod.logger.LogError(me.tag, "SetupAddonConfiguration function not available")
+      end
       return
     end
   end
@@ -359,14 +331,13 @@ function me.OpenMainCategory()
     -- Modern API (WoW 8.0+)
     if mainCategoryId ~= nil then
       Settings.OpenToCategory(mainCategoryId)
-      print("|cFF00FFB0GearMenu:|r Using modern Settings API")
     else
-      print("|cffff0000GearMenu Error:|r mainCategoryId is nil")
+      if mod.logger then
+        mod.logger.LogError(me.tag, "mainCategoryId is nil")
+      end
     end
   else
     -- Legacy API (WoW 3.3.5)
-    print("|cFF00FFB0GearMenu:|r Using legacy InterfaceOptions API")
-    
     -- Open Interface Options frame
     if not InterfaceOptionsFrame:IsShown() then
       ShowUIPanel(InterfaceOptionsFrame)
@@ -378,14 +349,14 @@ function me.OpenMainCategory()
     end)
     
     if not success then
-      print("|cffff0000GearMenu Error:|r Failed to open category. Trying alternative method...")
       -- Alternative: Open Interface Options and manually select
       if InterfaceOptionsFrame then
         ShowUIPanel(InterfaceOptionsFrame)
         -- The panel should be accessible via the addon list
       end
-    else
-      print("|cFF00FF00GearMenu:|r Configuration panel opened successfully")
+      if mod.logger then
+        mod.logger.LogError(me.tag, "Failed to open category")
+      end
     end
   end
 end

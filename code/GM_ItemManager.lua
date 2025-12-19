@@ -78,7 +78,23 @@ function me.GetItemsForInventoryType(inventoryType)
 
   for i = 0, 4 do
     for j = 1, C_Container.GetContainerNumSlots(i) do
-      local itemId = C_Container.GetContainerItemID(i, j)
+      -- Use GetContainerItemLink to get the real itemId (not transmog)
+      -- Parse the item link to extract the base itemId
+      local itemLink = C_Container.GetContainerItemLink(i, j)
+      local itemId = nil
+      
+      if itemLink then
+        -- Extract itemId from item link: "item:itemId:enchantId:gemId1:gemId2:gemId3:gemId4:suffixId:uniqueId:linkLevel:specializationId:modifiersMask:itemContext"
+        local _, _, id = string.find(itemLink, "item:(%d+):")
+        if id then
+          itemId = tonumber(id)
+        end
+      end
+      
+      -- Fallback to GetContainerItemID if link parsing fails
+      if not itemId then
+        itemId = C_Container.GetContainerItemID(i, j)
+      end
 
       if itemId then
         local itemName, _, itemRarity, _, _, _, _, _, equipSlot, itemIcon = GetItemInfo(itemId)
@@ -98,9 +114,6 @@ function me.GetItemsForInventoryType(inventoryType)
               items[idx].quality = itemRarity
 
               idx = idx + 1
-            else
-              mod.logger.LogDebug(me.tag, "Ignoring item because its quality is lower than setting "
-                .. mod.configuration.GetFilterItemQuality())
             end
           end
         end
@@ -341,7 +354,22 @@ function me.FindQuickChangeItems(inventoryType, mustHaveOnUse)
 
   for i = 0, 4 do
     for j = 1, C_Container.GetContainerNumSlots(i) do
-      local itemId = C_Container.GetContainerItemID(i, j)
+      -- Use GetContainerItemLink to get the real itemId (not transmog)
+      local itemLink = C_Container.GetContainerItemLink(i, j)
+      local itemId = nil
+      
+      if itemLink then
+        -- Extract itemId from item link
+        local _, _, id = string.find(itemLink, "item:(%d+):")
+        if id then
+          itemId = tonumber(id)
+        end
+      end
+      
+      -- Fallback to GetContainerItemID if link parsing fails
+      if not itemId then
+        itemId = C_Container.GetContainerItemID(i, j)
+      end
 
       if itemId and not me.IsDuplicateItem(items, itemId) then
         local item = me.AddItemsMatchingInventoryType(inventoryType, itemId, mustHaveOnUse)

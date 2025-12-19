@@ -49,7 +49,6 @@ function me.SetupSlashCmdList()
   SlashCmdList["GEARMENU"] = function(msg)
     -- Safety check: ensure addon is initialized
     if not mod or not mod.Initialize then
-      print("|cffff0000GearMenu Error:|r Addon not initialized. Please reload UI.")
       return
     end
     
@@ -72,13 +71,11 @@ function me.SetupSlashCmdList()
       if mod.addonConfiguration and mod.addonConfiguration.OpenMainCategory then
         mod.addonConfiguration.OpenMainCategory()
       else
-        print("|cffff0000GearMenu Error:|r Configuration module not loaded.")
       end
     else
       if mod.logger then
         mod.logger.PrintUserError(rggm.L["invalid_argument"])
       else
-        print("|cffff0000GearMenu:|r Invalid argument")
       end
     end
   end
@@ -93,8 +90,6 @@ do
   SlashCmdList["GEARMENU"] = function(msg)
     -- If addon is not initialized, try to show basic help
     if not rggm or not rggm.cmd then
-      print("|cFF00FFB0GearMenu:|r Addon is loading or not initialized.")
-      print("|cFF00FFB0GearMenu:|r Use /reload to reload the UI.")
       return
     end
     
@@ -111,29 +106,22 @@ do
     end
     
     if args[1] == "" or args[1] == "help" or #args == 0 then
-      print("|cFF00FFB0GearMenu:|r Use |cFFFFC300/rggm|r or |cFFFFC300/gearmenu|r for a list of options")
-      print("|cFFFFC300opt|r - display Options menu")
-      print("|cFFFFC300reload|r - reload UI")
+      ShowInfoMessage()
     elseif args[1] == "rl" or args[1] == "reload" then
       ReloadUI()
     elseif args[1] == "opt" then
-      print("|cFF00FFB0GearMenu:|r Attempting to open options...")
       if rggm.addonConfiguration and rggm.addonConfiguration.OpenMainCategory then
-        print("|cFF00FFB0GearMenu:|r Calling OpenMainCategory...")
         rggm.addonConfiguration.OpenMainCategory()
       else
-        print("|cffff0000GearMenu Error:|r Configuration module not loaded.")
-        if not rggm.addonConfiguration then
-          print("|cffff0000  - addonConfiguration is nil")
-        elseif not rggm.addonConfiguration.OpenMainCategory then
-          print("|cffff0000  - OpenMainCategory function not found")
+        if mod.logger then
+          mod.logger.PrintUserError("Configuration module not loaded. Try /reload")
         end
-        print("|cffff0000GearMenu:|r Try /reload to reload the UI")
       end
     else
-      print("|cffff0000GearMenu:|r Invalid argument")
+      if mod.logger then
+        mod.logger.PrintUserError(rggm.L["invalid_argument"])
+      end
     end
   end
   
-  print("|cFF00FFB0GearMenu:|r Slash commands registered")
 end

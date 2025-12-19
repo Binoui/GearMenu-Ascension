@@ -123,7 +123,6 @@ StaticPopupDialogs["RGGM_GEAR_BAR_CONFIRM_DELETE"] = {
           mod.gearBarManager.RemoveGearBar(gearBarId)
         end)
         if not success then
-          print("|cffff0000GearMenu Error:|r Failed to remove gearBar from configuration: " .. tostring(err))
         end
       end
       
@@ -272,7 +271,6 @@ function me.LoadConfiguredGearBars()
     if mod.logger then
       mod.logger.LogError(me.tag, "gearBarManager or GetGearBars not available")
     else
-      print("|cffff0000GearMenu Error:|r gearBarManager not available")
     end
     return
   end
@@ -292,7 +290,6 @@ function me.LoadConfiguredGearBars()
     if mod.logger then
       mod.logger.LogError(me.tag, "GetGearBars returned non-table value: " .. type(gearBars))
     else
-      print("|cffff0000GearMenu Error:|r GetGearBars returned non-table value")
     end
     return
   end
@@ -318,9 +315,7 @@ function me.LoadConfiguredGearBars()
       if category then
         category.gearBarId = gearBars[i].id
       end
-      print("|cFF00FF00GearMenu:|r Created gearBar subcategory: " .. (gearBars[i].displayName or "GearBar " .. gearBars[i].id))
     else
-      print("|cffff0000GearMenu Error:|r Failed to create gearBar subcategory for id: " .. gearBars[i].id)
     end
   end
 end

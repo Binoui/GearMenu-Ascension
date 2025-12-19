@@ -145,7 +145,6 @@ function me.UpdateChangeSlots(changeSlotSize, gearSlotMetaData, items)
       me.UpdateChangeSlot(changeMenuSlots[actualIndex], gearSlotMetaData, items[actualIndex], changeSlotSize)
       me.UpdateChangeSlotSize(changeSlotSize, changeMenuFrame, changeMenuSlots[actualIndex], xPos, yPos)
 
-      mod.logger.LogDebug(me.tag, "Updating ChangeSlot Row{" .. row .. "} xPos{" .. xPos .. "} yPos{" .. yPos .. "}")
       lastColumn = column
     end
 
@@ -181,7 +180,19 @@ function me.UpdateChangeSlot(changeSlot, gearSlotMetaData, item, changeSlotSize)
   changeSlot.slotId = gearSlotMetaData.slotId
   changeSlot.itemId = item.id
   changeSlot.equipSlot = item.equipSlot
-  changeSlot.itemTexture:SetTexture(item.icon)
+  -- Set texture for the change slot icon
+  if item.icon and item.icon ~= "" then
+    local success = pcall(function()
+      changeSlot.itemTexture:SetTexture(item.icon)
+    end)
+    if not success or not changeSlot.itemTexture:GetTexture() then
+      -- Fallback to a default icon if texture doesn't work
+      changeSlot.itemTexture:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
+    end
+  else
+    -- Use default icon if icon is missing or invalid
+    changeSlot.itemTexture:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
+  end
   changeSlot:Show()
 end
 
@@ -266,7 +277,21 @@ function me.UpdateEmptyChangeSlot(changeMenu, itemCount, gearSlotMetaData, empty
   emptyChangeMenuSlot.slotId = gearSlotMetaData.slotId
   emptyChangeMenuSlot.itemId = nil
   emptyChangeMenuSlot.equipSlot = nil
-  emptyChangeMenuSlot.itemTexture:SetTexture(gearSlotMetaData.textureId)
+  -- Set texture for the empty slot icon
+  if gearSlotMetaData.textureId and type(gearSlotMetaData.textureId) == "number" then
+    -- In WoW 3.3.5, SetTexture can accept texture IDs directly
+    -- If it doesn't work, we'll use a fallback texture
+    local success = pcall(function()
+      emptyChangeMenuSlot.itemTexture:SetTexture(gearSlotMetaData.textureId)
+    end)
+    if not success or not emptyChangeMenuSlot.itemTexture:GetTexture() then
+      -- Fallback to a default icon if texture ID doesn't work
+      emptyChangeMenuSlot.itemTexture:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
+    end
+  else
+    -- Use default icon if textureId is missing or invalid
+    emptyChangeMenuSlot.itemTexture:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
+  end
   emptyChangeMenuSlot:Show()
 end
 

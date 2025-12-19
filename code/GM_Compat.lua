@@ -3,9 +3,6 @@
   Provides C_Timer compatibility for older clients
 ]]--
 
--- Debug: This should print when the file loads
-print("|cFF00FFB0GearMenu:|r GM_Compat.lua loading...")
-
 -- Create C_Timer if it doesn't exist (for WoW 3.3.5)
 if not C_Timer then
   C_Timer = {}
@@ -212,6 +209,4 @@ if not C_LossOfControl then
   end
 end
 
--- Debug: Confirm file loaded
-print("|cFF00FFB0GearMenu:|r GM_Compat.lua loaded successfully")
 

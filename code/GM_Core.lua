@@ -38,8 +38,6 @@ me.mainFrame = nil
 -- Debug: Print when core module loads (helps diagnose loading issues)
 if not me._loaded then
   me._loaded = true
-  -- This will print when the file is first loaded
-  print("|cFF00FFB0GearMenu:|r Core module loaded")
 end
 
 local initializationDone = false
@@ -68,9 +66,6 @@ function me.OnLoad(self)
   
   -- Register events
   me.RegisterEvents(self)
-  
-  -- Debug: confirm frame loaded (print to chat for visibility)
-  print("|cFF00FFB0GearMenu:|r Main frame loaded successfully")
   
   if me.logger then
     me.logger.LogDebug(me.tag, "Main frame loaded")
@@ -281,7 +276,6 @@ end
 function me.Initialize()
   -- Safety check: ensure logger exists
   if not me.logger then
-    print("|cffff0000GearMenu Error:|r Logger not initialized!")
     return
   end
   
@@ -289,16 +283,6 @@ function me.Initialize()
   local success, err = pcall(function()
     me.logger.LogDebug(me.tag, "Initialize addon")
     
-    -- Debug: List all available modules
-    print("|cFF00FFB0GearMenu Debug:|r Checking modules...")
-    local modules = {"cmd", "configuration", "addonConfiguration", "themeCoordinator", "gearBar", "gearBarChangeMenu", "trinketMenu", "combatQueue", "itemManager", "gearManager", "gearBarManager", "quickChange", "target", "tooltip", "filter", "ticker", "common", "macro", "keyBind"}
-    for _, modName in ipairs(modules) do
-      if me[modName] then
-        print("|cFF00FF00  ✓|r " .. modName .. " loaded")
-      else
-        print("|cffff0000  ✗|r " .. modName .. " MISSING")
-      end
-    end
     
     -- Check all required modules exist
     if not me.cmd then
@@ -352,18 +336,14 @@ function me.Initialize()
   
   if not success then
     local errorMsg = "|cffff0000GearMenu Initialization Error:|r " .. tostring(err)
-    print(errorMsg)
-    print("|cffff0000GearMenu:|r Stack trace:")
-    print(debug.traceback())
     if me.logger then
       me.logger.LogError(me.tag, "Initialization failed: " .. tostring(err))
+      me.logger.LogError(me.tag, "Stack trace: " .. debug.traceback())
     end
     -- Try to show error in chat
     if DEFAULT_CHAT_FRAME then
       DEFAULT_CHAT_FRAME:AddMessage(errorMsg)
     end
-  else
-    print("|cFF00FF00GearMenu:|r Initialization completed successfully!")
   end
 end
 

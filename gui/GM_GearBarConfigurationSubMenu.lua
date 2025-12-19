@@ -143,6 +143,8 @@ function me.BuildGearBarConfigurationSubMenu(parentFrame)
   gearBarConfigurationContentFrame:SetWidth(RGGM_CONSTANTS.INTERFACE_PANEL_CONTENT_FRAME_WIDTH)
   gearBarConfigurationContentFrame:SetHeight(RGGM_CONSTANTS.INTERFACE_PANEL_CONTENT_FRAME_HEIGHT)
   gearBarConfigurationContentFrame:SetPoint("TOPLEFT", parentFrame, 5, -7)
+  -- Attach gearBarId directly to the content frame for easier access
+  gearBarConfigurationContentFrame.gearBarId = parentFrame.gearBarId
 
   gearBarConfigurationContentFrame.subMenuTitle = me.CreateConfigurationMenuTitle(gearBarConfigurationContentFrame)
   me.CreateAddGearSlotButton(gearBarConfigurationContentFrame)
@@ -336,7 +338,14 @@ end
   @param {table} self
 ]]--
 function me.ShowKeyBindingsOnShow(self)
-  if mod.gearBarManager.IsShowKeyBindingsEnabled(self:GetParent():GetParent().gearBarId) then
+  -- Get gearBarId from parent (gearBarConfigurationContentFrame) which now has gearBarId attached
+  local gearBarId = self:GetParent().gearBarId
+  if not gearBarId then
+    -- Fallback to parent's parent if gearBarId not found on direct parent
+    gearBarId = self:GetParent():GetParent().gearBarId
+  end
+  
+  if gearBarId and mod.gearBarManager.IsShowKeyBindingsEnabled(gearBarId) then
     self:SetChecked(true)
   else
     self:SetChecked(false)
@@ -350,12 +359,23 @@ end
 ]]--
 function me.ShowKeyBindingsOnClick(self)
   local enabled = self:GetChecked()
-  local gearBarId = self:GetParent():GetParent().gearBarId
+  -- Get gearBarId from parent (gearBarConfigurationContentFrame) which now has gearBarId attached
+  local gearBarId = self:GetParent().gearBarId
+  if not gearBarId then
+    -- Fallback to parent's parent if gearBarId not found on direct parent
+    gearBarId = self:GetParent():GetParent().gearBarId
+  end
 
-  if enabled then
-    mod.gearBarManager.EnableShowKeyBindings(gearBarId)
+  if gearBarId then
+    if enabled then
+      mod.gearBarManager.EnableShowKeyBindings(gearBarId)
+    else
+      mod.gearBarManager.DisableShowKeyBindings(gearBarId)
+    end
   else
-    mod.gearBarManager.DisableShowKeyBindings(gearBarId)
+    if mod.logger then
+      mod.logger.LogError(me.tag, "ShowKeyBindingsOnClick: Could not find gearBarId")
+    end
   end
 end
 
@@ -545,6 +565,8 @@ function me.CreateGearBarConfigurationSlotIcon(row)
     RGGM_CONSTANTS.GEAR_BAR_CONFIGURATION_GEAR_SLOT_ICON_SIZE,
     RGGM_CONSTANTS.GEAR_BAR_CONFIGURATION_GEAR_SLOT_ICON_SIZE
   )
+  -- Initialize with a default texture to avoid red squares
+  slotIcon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
 
   local backdrop = {
     bgFile = "Interface\\AddOns\\GearMenu\\assets\\ui_slot_background",
@@ -747,7 +769,6 @@ function me.RemoveGearSlot(self)
     if mod.logger then
       mod.logger.LogError(me.tag, "Failed to find gearSlot at position: " .. gearSlotPosition .. " for gearBar id: " .. gearBarConfiguration.id)
     else
-      print("|cffff0000GearMenu Error:|r Failed to find gearSlot at position: " .. gearSlotPosition)
     end
     return
   end
@@ -797,7 +818,21 @@ function me.GearBarConfigurationSlotsListOnUpdate(scrollFrameReference)
       if slot == nil then return end -- no more slots available for that gearBar
 
       row.position = gearSlotPosition -- add actual gearSlot position
-      row.slotIcon:SetTexture(slot.textureId)
+      -- Set texture for the slot icon
+      if slot.textureId and type(slot.textureId) == "number" then
+        -- In WoW 3.3.5, SetTexture can accept texture IDs directly
+        -- If it doesn't work, we'll use a fallback texture
+        local success = pcall(function()
+          row.slotIcon:SetTexture(slot.textureId)
+        end)
+        if not success or not row.slotIcon:GetTexture() then
+          -- Fallback to a default icon if texture ID doesn't work
+          row.slotIcon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
+        end
+      else
+        -- Use default icon if textureId is missing or invalid
+        row.slotIcon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
+      end
       -- update preselected dropdown value for the slot
       mod.libUiDropDownMenu.UiDropDownMenu_SetSelectedValue(row.gearSlot, slot.slotId)
       mod.libUiDropDownMenu.UiDropDownMenu_SetText(row.gearSlot, rggm.L[slot.name])
@@ -832,7 +867,6 @@ function me.RegisterScriptWithContentFrame(event, callback)
       activeContentFrame:SetFrameLevel(activeContentFrame:GetFrameLevel() + 10)
       -- Also set frame strata to ensure it's on top
       activeContentFrame:SetFrameStrata("DIALOG")
-      mod.logger.LogDebug(me.tag, "Enabled keyboard input on content frame for key capture")
     end
     activeContentFrame:SetScript(event, callback)
   else

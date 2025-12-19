@@ -25,8 +25,6 @@
 
 -- luacheck: globals INVSLOT_HEAD
 
--- Debug: Confirm file loading
-print("|cFF00FFB0GearMenu:|r GM_Constants.lua loading...")
 
 RGGM_CONSTANTS = {
   ADDON_NAME = "GearMenu",
@@ -276,5 +274,3 @@ RGGM_CONSTANTS = {
   TRINKET_MENU_SLOT_SIZE_SLIDER_MAX = 64
 }
 
--- Debug: Confirm file loaded
-print("|cFF00FFB0GearMenu:|r GM_Constants.lua loaded successfully")

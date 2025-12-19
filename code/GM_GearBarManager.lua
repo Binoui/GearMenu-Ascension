@@ -88,7 +88,6 @@ function me.RemoveGearBar(gearBarId)
       if mod.logger then
         mod.logger.LogInfo(me.tag, "Removed GearBar with id: " .. gearBarId)
       else
-        print("|cFF00FF00GearMenu:|r Removed GearBar with id: " .. gearBarId)
       end
       return -- abort
     end
@@ -106,7 +105,6 @@ function me.RemoveGearBar(gearBarId)
       if mod.logger then
         mod.logger.LogInfo(me.tag, "Removed GearBar with id: " .. gearBarId)
       else
-        print("|cFF00FF00GearMenu:|r Removed GearBar with id: " .. gearBarId)
       end
       return
     end
@@ -117,7 +115,6 @@ function me.RemoveGearBar(gearBarId)
       me.tag, "Failed to remove GearBar from storage. Was unable to find GearBar with id: " .. gearBarId
     )
   else
-    print("|cffff0000GearMenu Error:|r Failed to remove GearBar. Was unable to find GearBar with id: " .. gearBarId)
   end
 end
 

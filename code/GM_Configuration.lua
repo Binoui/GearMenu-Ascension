@@ -277,12 +277,7 @@ function me.SetAddonVersion()
   end
 
   -- First time initialization: create default gearBar if none exists
-  print("|cFF00FFB0GearMenu Debug:|r Checking first time initialization...")
-  print("|cFF00FFB0  - gearBars count: " .. #GearMenuConfiguration.gearBars)
-  print("|cFF00FFB0  - firstTimeInitializationDone: " .. tostring(GearMenuConfiguration.firstTimeInitializationDone))
-  
   if #GearMenuConfiguration.gearBars == 0 and not GearMenuConfiguration.firstTimeInitializationDone then
-    print("|cFF00FF00GearMenu:|r No gearBars found and firstTimeInitializationDone is false - creating default gearBar")
     if mod.logger then
       mod.logger.LogInfo(me.tag, "No gearBars found and firstTimeInitializationDone is false - creating default gearBar")
     end
@@ -290,8 +285,6 @@ function me.SetAddonVersion()
   else
     if mod.logger then
       mod.logger.LogDebug(me.tag, "Skipping first time initialization - gearBars count: " .. #GearMenuConfiguration.gearBars .. ", firstTimeInitializationDone: " .. tostring(GearMenuConfiguration.firstTimeInitializationDone))
-    else
-      print("|cFF00FFB0GearMenu:|r Skipping first time initialization")
     end
   end
 end
@@ -312,25 +305,29 @@ end
 function me.FirstTimeInitialization()
   if mod.logger then
     mod.logger.LogInfo(me.tag, "First initialization detected. Creating default gearBar")
-  else
-    print("|cFF00FFB0GearMenu:|r First initialization detected. Creating default gearBar")
   end
 
   -- Safety checks
   if not mod.gearBarManager then
-    print("|cffff0000GearMenu Error:|r gearBarManager not available for first time initialization")
+    if mod.logger then
+      mod.logger.LogError(me.tag, "gearBarManager not available for first time initialization")
+    end
     return
   end
   
   if not mod.gearManager then
-    print("|cffff0000GearMenu Error:|r gearManager not available for first time initialization")
+    if mod.logger then
+      mod.logger.LogError(me.tag, "gearManager not available for first time initialization")
+    end
     return
   end
 
   local gearBar = mod.gearBarManager.AddGearBar(RGGM_CONSTANTS.GEAR_BAR_DEFAULT_NAME, false)
   
   if not gearBar then
-    print("|cffff0000GearMenu Error:|r Failed to create default gearBar")
+    if mod.logger then
+      mod.logger.LogError(me.tag, "Failed to create default gearBar")
+    end
     return
   end
   
@@ -348,8 +345,6 @@ function me.FirstTimeInitialization()
   
   if mod.logger then
     mod.logger.LogInfo(me.tag, "Default gearBar created successfully with 3 slots")
-  else
-    print("|cFF00FF00GearMenu:|r Default gearBar created successfully with 3 slots")
   end
 end
 

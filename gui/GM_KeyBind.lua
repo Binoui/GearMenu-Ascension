@@ -125,15 +125,12 @@ StaticPopupDialogs["RGPVPW_SET_KEYBIND"] = {
   OnShow = function(self)
     me.ResetKeyBindingRecording()
     
-    mod.logger.LogDebug(me.tag, "Keybind popup shown")
-    
     -- Enable keyboard input directly on the popup frame
     -- In WoW 3.3.5, we can capture keys on the popup itself
     local popupFrame = _G[self:GetName()]
     if popupFrame then
       popupFrame:EnableKeyboard(true)
       popupFrame:SetScript("OnKeyDown", function(frame, key)
-        mod.logger.LogDebug(me.tag, "Popup OnKeyDown captured key: " .. tostring(key))
         if key then
           -- Handle Escape separately
           if key == "ESCAPE" then
@@ -163,7 +160,6 @@ StaticPopupDialogs["RGPVPW_SET_KEYBIND"] = {
       end)
       
       keyCaptureFrame:SetScript("OnKeyDown", function(self, key)
-        mod.logger.LogDebug(me.tag, "EditBox OnKeyDown captured key: " .. tostring(key))
         if key then
           if key == "ESCAPE" then
             StaticPopup_Hide("RGPVPW_SET_KEYBIND")
@@ -185,7 +181,6 @@ StaticPopupDialogs["RGPVPW_SET_KEYBIND"] = {
       C_Timer.After(0.1, function()
         if keyCaptureFrame and keyCaptureFrame:IsShown() then
           keyCaptureFrame:SetFocus()
-          mod.logger.LogDebug(me.tag, "EditBox focus set after delay")
         end
       end)
     else
@@ -195,7 +190,6 @@ StaticPopupDialogs["RGPVPW_SET_KEYBIND"] = {
     -- Setup scripts on content frame for keyboard and mouse events
     -- This is the primary method for capturing input in WoW 3.3.5
     mod.gearBarConfigurationSubMenu.RegisterScriptWithContentFrame("OnKeyDown", function(_, key)
-      mod.logger.LogDebug(me.tag, "ContentFrame OnKeyDown captured key: " .. tostring(key))
       if key then
         -- Handle Escape separately
         if key == "ESCAPE" then
@@ -285,11 +279,8 @@ StaticPopupDialogs["RGPVPW_SET_KEYBIND_OVERRIDE"] = {
 ]]--
 function me.OnKeyDown(self, key)
   if not key then
-    mod.logger.LogDebug(me.tag, "OnKeyDown called with nil key")
     return
   end
-  
-  mod.logger.LogDebug(me.tag, "OnKeyDown captured key: " .. tostring(key))
   
   -- Prevent the key from triggering game actions while capturing keybind
   -- In WoW 3.3.5, we need to explicitly prevent default behavior

@@ -73,7 +73,6 @@ function me.CreateGearSlot(gearBarFrame, gearBar, position)
     if mod.logger then
       mod.logger.LogError(me.tag, "No implementation for CreateGearSlot in theme. themeReference: " .. tostring(themeReference))
     else
-      print("|cffff0000GearMenu Error:|r No theme implementation for CreateGearSlot")
     end
     return nil
   end
@@ -101,7 +100,6 @@ function me.CreateChangeSlot(changeMenuFrame, position)
     if mod.logger then
       mod.logger.LogError(me.tag, "No implementation for CreateChangeSlot in theme. themeReference: " .. tostring(themeReference))
     else
-      print("|cffff0000GearMenu Error:|r No theme implementation for CreateChangeSlot")
     end
     return nil
   end
@@ -130,7 +128,6 @@ function me.CreateTrinketSlot(trinketMenuFrame, position)
     if mod.logger then
       mod.logger.LogError(me.tag, "No implementation for CreateTrinketSlot in theme. themeReference: " .. tostring(themeReference))
     else
-      print("|cffff0000GearMenu Error:|r No theme implementation for CreateTrinketSlot")
     end
     return nil
   end
@@ -154,7 +151,6 @@ function me.UpdateSlotTextureAttributes(slot, slotSize)
     if mod.logger then
       mod.logger.LogError(me.tag, "No implementation for UpdateSlotTextureAttributes in theme. themeReference: " .. tostring(themeReference))
     else
-      print("|cffff0000GearMenu Error:|r No theme implementation for UpdateSlotTextureAttributes")
     end
   end
 end

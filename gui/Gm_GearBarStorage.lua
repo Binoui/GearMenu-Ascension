@@ -115,7 +115,6 @@ function me.RemoveGearBar(gearBarId)
     if mod.logger then
       mod.logger.LogError(me.tag, "Cannot remove GearBar UI - gearBar not found with id: " .. gearBarId)
     else
-      print("|cffff0000GearMenu Error:|r Cannot remove GearBar UI - gearBar not found with id: " .. gearBarId)
     end
   end
 end
