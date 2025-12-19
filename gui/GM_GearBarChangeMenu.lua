@@ -262,11 +262,6 @@ function me.UpdateEmptyChangeSlot(changeMenu, itemCount, gearSlotMetaData, empty
 
   local emptyChangeMenuSlot = changeMenuSlots[itemCount]
 
-    "Updating EmptyChangeSlot Row{" .. emptySlotPosition.row ..
-      "} xPos{" .. emptySlotPosition.xPos ..
-      "} yPos{" .. emptySlotPosition.yPos .. "}"
-  )
-
   me.UpdateChangeSlotSize(
     changeSlotSize, changeMenu, emptyChangeMenuSlot, emptySlotPosition.xPos, emptySlotPosition.yPos)
   mod.themeCoordinator.UpdateSlotTextureAttributes(emptyChangeMenuSlot, changeSlotSize)

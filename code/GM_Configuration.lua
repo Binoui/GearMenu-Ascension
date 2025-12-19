@@ -285,8 +285,6 @@ end
   First time initialization. Create a basic default gearBar
 ]]--
 function me.FirstTimeInitialization()
-  if mod.logger then
-  end
 
   -- Safety checks
   if not mod.gearBarManager then
