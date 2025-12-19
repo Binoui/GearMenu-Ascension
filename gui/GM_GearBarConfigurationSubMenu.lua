@@ -103,7 +103,6 @@ end
     The contentFrame that should be stored
 ]]--
 function me.AddGearBarContentFrame(contentFrame)
-  mod.logger.LogDebug(me.tag, "Adding contentFrame for gearBarId: " .. currentActiveGearBarId)
   gearBarConfigurationContentFrames[currentActiveGearBarId] = contentFrame
 end
 
@@ -114,7 +113,6 @@ end
     The gearBarId for which to remove the contentFrame
 ]]--
 function me.RemoveGearBarContentFrame(gearBarId)
-  mod.logger.LogDebug(me.tag, "Removing contentFrame for gearBarId: " .. gearBarId)
   gearBarConfigurationContentFrames[gearBarId] = nil
 end
 

@@ -57,7 +57,6 @@ function me.AddToQueue(itemId, slotId)
   if not itemId or not slotId then return end
 
   combatQueueStore[slotId] = itemId
-  mod.logger.LogDebug(me.tag, "Added item with id " .. itemId .. " in slotId "
     .. slotId .. " to combatQueueStore")
   mod.gearBar.UpdateCombatQueue(slotId, itemId)
   mod.ticker.StartTickerCombatQueue()
@@ -80,7 +79,6 @@ function me.RemoveFromQueue(slotId)
   end
 
   combatQueueStore[slotId] = nil
-  mod.logger.LogDebug(me.tag, "Removed item with id " .. itemId .. " in slotId "
     .. slotId .. " from combatQueueStore")
   mod.gearBar.UpdateCombatQueue(slotId)
 end
@@ -164,7 +162,6 @@ function me.UpdateEquipChangeBlockStatus()
     local event = C_LossOfControl.GetActiveLossOfControlData(eventIndex)
     
     if event and event.locType then
-      mod.logger.LogDebug(me.tag, "UpdateEquipChangeBlockStatus detected locType: " .. event.locType)
 
       if relevantLocTypes[event.locType] then
         isEquipChangeBlocked = true

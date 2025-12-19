@@ -75,7 +75,6 @@ function me.AddQuickChangeRule(changeFromItemId, changeToItemId, delay)
   }
 
   mod.configuration.AddQuickChangeRule(quickChangeRule)
-  mod.logger.LogDebug(me.tag, "Added new quickChangeRule from: " .. quickChangeRule.changeFromItemId ..
     " to: " .. quickChangeRule.changeToItemId)
 end
 

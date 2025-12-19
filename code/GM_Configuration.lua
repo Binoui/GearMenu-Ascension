@@ -267,7 +267,6 @@ function me.SetAddonVersion()
     me.FirstTimeInitialization()
   else
     if mod.logger then
-      mod.logger.LogDebug(me.tag, "Skipping first time initialization - gearBars count: " .. #GearMenuConfiguration.gearBars .. ", firstTimeInitializationDone: " .. tostring(GearMenuConfiguration.firstTimeInitializationDone))
     end
   end
 end
@@ -348,7 +347,6 @@ function me.UpgradeToV1_3_0()
 
   if not shouldRunUpgradePath then return end
 
-  mod.logger.LogDebug(me.tag, "Running upgrade path from " .. GearMenuConfiguration.addonVersion .. " to v1.3.0")
 
   local slots = GearMenuConfiguration.slots
 
@@ -358,7 +356,6 @@ function me.UpgradeToV1_3_0()
     end
   end
 
-  mod.logger.LogDebug(me.tag, "Finished upgrade path from " .. GearMenuConfiguration.addonVersion .. " to v1.3.0")
 end
 
 --[[
@@ -378,12 +375,10 @@ function me.UpgradeToV1_4_0()
 
   if not shouldRunUpgradePath then return end
 
-  mod.logger.LogDebug(me.tag, "Running upgrade path from " .. GearMenuConfiguration.addonVersion .. " to v1.4.0")
 
   GearMenuConfiguration.enableFastPress = GearMenuConfiguration.enableFastpress
   GearMenuConfiguration.enableFastpress = nil
 
-  mod.logger.LogDebug(me.tag, "Finished upgrade path from " .. GearMenuConfiguration.addonVersion .. " to v1.4.0")
 end
 
 --[[
@@ -403,7 +398,6 @@ function me.UpgradeToV2_0_0()
 
   if not shouldRunUpgradePath then return end
 
-  mod.logger.LogDebug(me.tag, "Running upgrade path from " .. GearMenuConfiguration.addonVersion .. " to v2.0.0")
 
   if GearMenuConfiguration.frames.GM_GearBar == nil then
     mod.logger.LogError(me.tag, "Migration failed - no gearBar found. Continuing with default initialization")
@@ -470,7 +464,6 @@ function me.UpgradeToV2_0_0()
   GearMenuConfiguration.frames = nil
   GearMenuConfiguration.slots = nil
 
-  mod.logger.LogDebug(me.tag, "Finished upgrade path from " .. GearMenuConfiguration.addonVersion .. " to v2.0.0")
 end
 
 --[[
@@ -797,7 +790,6 @@ function me.SaveUserPlacedFramePosition(frameName, point, relativeTo, relativePo
   GearMenuConfiguration.frames[frameName].relativeTo = relativeTo
   GearMenuConfiguration.frames[frameName].relativePoint = relativePoint
 
-  mod.logger.LogDebug(me.tag, "Saved frame position for - " .. frameName
     .. " - new pos: posX " .. posX .. " posY " .. posY .. " point " .. point)
 end
 

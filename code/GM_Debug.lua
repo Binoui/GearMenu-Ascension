@@ -45,9 +45,6 @@ _G["__GM__DEBUG__EXECUTE_QUICK_CHANGE_RULE"] = function()
   local quickChangeRules = mod.configuration.GetQuickChangeRules()
 
   for _, quickChangeRule in ipairs(quickChangeRules) do
-    mod.logger.LogDebug(me.tag, "Switching from: " .. quickChangeRule.changeFromItemId)
-    mod.logger.LogDebug(me.tag, "Switching to: " .. quickChangeRule.changeToItemId)
-    mod.logger.LogDebug(me.tag, "EquipSlot: " .. quickChangeRule.equipSlot)
 
     if quickChangeRule.delay > 0 then
       C_Timer.After(quickChangeRule.delay, function()

@@ -280,7 +280,6 @@ function me.LoadConfiguredGearBars()
   -- Safety check: ensure gearBars is a table
   if not gearBars then
     if mod.logger then
-      mod.logger.LogDebug(me.tag, "No gearBars configured yet, returning")
     end
     return
   end
@@ -296,7 +295,6 @@ function me.LoadConfiguredGearBars()
 
   for i = 1, #gearBars do
     if mod.logger then
-      mod.logger.LogDebug(me.tag, "Loading gearBar with id: " .. gearBars[i].id .. " from configuration")
     end
 
     -- Get the GearBar Configuration category as parent

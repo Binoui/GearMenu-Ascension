@@ -262,7 +262,6 @@ function me.UpdateEmptyChangeSlot(changeMenu, itemCount, gearSlotMetaData, empty
 
   local emptyChangeMenuSlot = changeMenuSlots[itemCount]
 
-  mod.logger.LogDebug(me.tag,
     "Updating EmptyChangeSlot Row{" .. emptySlotPosition.row ..
       "} xPos{" .. emptySlotPosition.xPos ..
       "} yPos{" .. emptySlotPosition.yPos .. "}"

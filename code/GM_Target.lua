@@ -65,17 +65,13 @@ function me.UpdateCurrentTarget()
 
   if targetId == nil then
     currentTargetGuid = ""
-    mod.logger.LogDebug(me.tag, "Update players targetGUID: [Empty-target]")
   else
     currentTargetGuid = targetId
-    mod.logger.LogDebug(me.tag, "Update players targetGUID: " .. currentTargetGuid)
   end
 
   if targetName == nil then
     currentTargetName = ""
-    mod.logger.LogDebug(me.tag, "Update players targetName: [Empty-target]")
   else
     currentTargetName = targetName
-    mod.logger.LogDebug(me.tag, "Update players targetName: " .. currentTargetName)
   end
 end

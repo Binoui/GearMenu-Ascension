@@ -642,7 +642,6 @@ function me.FromFauxScrollFrameOnUpdate(scrollFrame, slotId)
     -- invalidate cache
     fromCachedQuickChangeItems = nil
     fromCachedQuickChangeItems = mod.itemManager.FindQuickChangeItems(gearSlot.type, true)
-    mod.logger.LogDebug(
       me.tag, "Invalidated 'from' cached item list and updated items for new slotId: " .. selectedSlotId)
   end
 
@@ -742,7 +741,6 @@ function me.ToFauxScrollFrameOnUpdate(scrollFrame, slotId)
     -- invalidate cache
     toCachedQuickChangeItems = nil
     toCachedQuickChangeItems = mod.itemManager.FindQuickChangeItems(gearSlot.type, false)
-    mod.logger.LogDebug(
       me.tag, "Invalidated 'to' cached item list and updated items for new slotId: " .. selectedSlotId)
   end
 

@@ -104,7 +104,6 @@ function me.CheckSlotValidity(equipSlot, slotId)
   local gearSlots = mod.gearManager.GetGearSlotsForType(equipSlot)
 
   for i = 1, #gearSlots do
-    mod.logger.LogDebug(me.tag,
       string.format("Comparing valid slot %s against passed slot %s", gearSlots[i].slotId, slotId)
     )
     if gearSlots[i].slotId == slotId then

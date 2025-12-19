@@ -73,7 +73,6 @@ function me.GetGearBar(gearBarId)
   if gearBarUiStorage[gearBarId] == nil then
     -- Don't log as error if it's just not in UI storage (might not be built yet)
     if mod.logger then
-      mod.logger.LogDebug(me.tag, "GearBar UI not found with id: " .. gearBarId .. " (may not be built yet)")
     end
     return nil
   end
@@ -133,5 +132,4 @@ function me.AddGearSlot(gearBarId, gearSlotReference)
   end
 
   table.insert(gearBarUiStorage[gearBarId].gearSlotReferences, gearSlotReference)
-  mod.logger.LogDebug(me.tag, "Added new slot to gearBar with id: " .. gearBarId)
 end

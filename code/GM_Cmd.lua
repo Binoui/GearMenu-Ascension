@@ -55,7 +55,6 @@ function me.SetupSlashCmdList()
     local args = {}
 
     if mod.logger then
-      mod.logger.LogDebug(me.tag, "/rggm passed argument: " .. msg)
     end
 
     -- parse arguments by whitespace

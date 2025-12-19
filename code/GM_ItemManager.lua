@@ -150,7 +150,6 @@ end
 function me.EquipItemById(itemId, slotId)
   if not itemId or not slotId then return end
 
-  mod.logger.LogDebug(me.tag, "EquipItem: " .. itemId .. " in slot: " .. slotId)
   --[[
     Blizzard blocks even weapons from being switched by addons during combat. Because of this
     all items are added to the combatqueue if the player is in combat.
@@ -288,7 +287,6 @@ function me.SwitchItems(itemId, slotId)
       return -- abort
     end
 
-    mod.logger.LogDebug(me.tag, "Was unable to switch because the item to switch to could not be found")
     mod.combatQueue.RemoveFromQueue(slotId)
   end
 end
@@ -409,7 +407,6 @@ end
 function me.IsDuplicateItem(items, itemId)
   for i = 1, #items do
     if items[i].id == itemId then
-      mod.logger.LogDebug(me.tag, "Filtered duplicate item - " .. items[i].name .. " - from item list")
       return true
     end
   end
@@ -465,7 +462,6 @@ function me.AddItemsMatchingInventoryType(inventoryType, itemId, mustHaveOnUse)
         item.id = itemId
         item.texture = itemIcon
       else
-        mod.logger.LogDebug(me.tag, "Skipped item: " .. itemName .. " because it has no onUse effect")
         return nil
       end
     end

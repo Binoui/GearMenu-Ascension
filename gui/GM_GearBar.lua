@@ -396,7 +396,6 @@ end
   @param {number} itemId
 ]]--
 function me.UpdateCombatQueue(slotId, itemId)
-  mod.logger.LogDebug(me.tag, "Updating combatqueues for slotId - " .. slotId)
 
   for _, gearBar in pairs(mod.gearBarStorage.GetGearBars()) do
     local gearSlots = gearBar.gearSlotReferences
@@ -655,7 +654,6 @@ function me.UpdateGearBarGearSlots(gearBar)
   -- If the gearBar UI hasn't been built yet, build it first
   if not uiGearBar then
     if mod.logger then
-      mod.logger.LogDebug(me.tag, "GearBar UI not found for id " .. gearBar.id .. ", building it now")
     end
     me.BuildGearBar(gearBar)
     uiGearBar = mod.gearBarStorage.GetGearBar(gearBar.id)
