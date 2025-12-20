@@ -23,7 +23,7 @@
   WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ]]--
 
--- luacheck: globals GetItemInfo C_LossOfControl InCombatLockdown
+-- luacheck: globals GetItemInfo C_LossOfControl InCombatLockdown INVSLOT_MAINHAND INVSLOT_OFFHAND
 
 local mod = rggm
 local me = {}
@@ -57,7 +57,6 @@ function me.AddToQueue(itemId, slotId)
   if not itemId or not slotId then return end
 
   combatQueueStore[slotId] = itemId
-    .. slotId .. " to combatQueueStore")
   mod.gearBar.UpdateCombatQueue(slotId, itemId)
   mod.ticker.StartTickerCombatQueue()
 end
@@ -79,7 +78,6 @@ function me.RemoveFromQueue(slotId)
   end
 
   combatQueueStore[slotId] = nil
-    .. slotId .. " from combatQueueStore")
   mod.gearBar.UpdateCombatQueue(slotId)
 end
 
@@ -93,14 +91,31 @@ function me.ProcessQueue()
     return
   end
 
-  -- cannot change gear while player is in combat or is casting
-  if InCombatLockdown() or mod.common.IsPlayerCasting() or mod.common.IsPlayerReallyDead() then return end
-
+  -- Weapons (main hand and offhand) can be switched during combat
+  -- Other items cannot be changed while player is in combat or is casting
+  local inCombatLockdown = InCombatLockdown()
+  local isCasting = mod.common.IsPlayerCasting()
+  local isDead = mod.common.IsPlayerReallyDead()
+  
+  if isDead then return end
+  
   -- update queue for all slotpositions
   for _, gearSlot in pairs(mod.gearManager.GetGearSlots()) do
     if combatQueueStore[gearSlot.slotId] ~= nil then
-      mod.itemManager.EquipItemById(combatQueueStore[gearSlot.slotId], gearSlot.slotId)
-      mod.gearBar.UpdateCombatQueue(gearSlot.slotId, combatQueueStore[gearSlot.slotId])
+      local isWeaponSlot = (gearSlot.slotId == INVSLOT_MAINHAND or gearSlot.slotId == INVSLOT_OFFHAND)
+      
+      -- For weapons, allow switching even if InCombatLockdown() is true
+      -- Weapons can be switched in combat in WoW 3.3.5
+      if isWeaponSlot and not isCasting then
+        -- Weapons can be switched in combat, bypass InCombatLockdown check
+        mod.itemManager.EquipItemById(combatQueueStore[gearSlot.slotId], gearSlot.slotId)
+        mod.gearBar.UpdateCombatQueue(gearSlot.slotId, combatQueueStore[gearSlot.slotId])
+      elseif not inCombatLockdown and not isCasting then
+        -- Non-weapon items: only proceed if not in combat lockdown and not casting
+        mod.itemManager.EquipItemById(combatQueueStore[gearSlot.slotId], gearSlot.slotId)
+        mod.gearBar.UpdateCombatQueue(gearSlot.slotId, combatQueueStore[gearSlot.slotId])
+      end
+      -- If in combat lockdown with non-weapon or casting, skip this item (it will be processed later)
     end
   end
 end

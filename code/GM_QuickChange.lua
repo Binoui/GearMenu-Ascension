@@ -75,7 +75,6 @@ function me.AddQuickChangeRule(changeFromItemId, changeToItemId, delay)
   }
 
   mod.configuration.AddQuickChangeRule(quickChangeRule)
-    " to: " .. quickChangeRule.changeToItemId)
 end
 
 --[[

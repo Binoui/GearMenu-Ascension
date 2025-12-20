@@ -25,7 +25,7 @@
 
 -- luacheck: globals GetItemInfo INVSLOT_MAINHAND INVSLOT_OFFHAND PutItemInBackpack GetInventoryItemID
 -- luacheck: globals UnitAffectingCombat CursorHasItem SpellIsTargeting ClearCursor GetItemSpell
--- luacheck: globals IsInventoryItemLocked PutItemInBag PickupInventoryItem C_Container
+-- luacheck: globals IsInventoryItemLocked PutItemInBag PickupInventoryItem C_Container CreateFrame EquipCursorItem
 
 --[[
   Itemmanager manages all items. All itemslots muss register to work properly
@@ -151,14 +151,83 @@ function me.EquipItemById(itemId, slotId)
   if not itemId or not slotId then return end
 
   --[[
-    Blizzard blocks even weapons from being switched by addons during combat. Because of this
-    all items are added to the combatqueue if the player is in combat.
+    Weapons (main hand and offhand) can be switched during combat in WoW 3.3.5.
+    Other items are blocked and must be added to the combat queue.
   ]]--
-  if UnitAffectingCombat(RGGM_CONSTANTS.UNIT_ID_PLAYER) or mod.common.IsPlayerReallyDead()
-      or mod.combatQueue.IsEquipChangeBlocked() or mod.common.IsPlayerCasting() then
+  local isWeaponSlot = (slotId == INVSLOT_MAINHAND or slotId == INVSLOT_OFFHAND)
+  local inCombat = UnitAffectingCombat(RGGM_CONSTANTS.UNIT_ID_PLAYER)
+  local isDead = mod.common.IsPlayerReallyDead()
+  local isCasting = mod.common.IsPlayerCasting()
+  
+  -- For weapons, allow switching in combat (ignore IsEquipChangeBlocked for weapons)
+  if isWeaponSlot then
+    -- Weapons can be switched in combat, only check for dead/casting
+    if isDead or isCasting then
+      mod.combatQueue.AddToQueue(itemId, slotId)
+    else
+      -- For weapons in combat, use secure method
+      if inCombat then
+        me.SwitchItemsSecure(itemId, slotId)
+      else
+        -- Weapons can be switched even in combat and even if IsEquipChangeBlocked is true
+        me.SwitchItems(itemId, slotId)
+      end
+    end
+  elseif inCombat or isDead or mod.combatQueue.IsEquipChangeBlocked() or isCasting then
+    -- Non-weapon items go to combat queue during combat or if blocked
     mod.combatQueue.AddToQueue(itemId, slotId)
   else
     me.SwitchItems(itemId, slotId)
+  end
+end
+
+--[[
+  Switch items using secure method (for weapons in combat)
+  Uses PickupContainerItem + EquipCursorItem which works for weapons in combat
+
+  @param {number} itemId
+  @param {number} slotId
+]]--
+function me.SwitchItemsSecure(itemId, slotId)
+  if not itemId or not slotId then return end
+  if CursorHasItem() or SpellIsTargeting() then return end
+  
+  local bagNumber, bagPos = me.FindItemInBag(itemId)
+  if not bagNumber or not bagPos then return end
+  
+  local itemInfo = C_Container.GetContainerItemInfo(bagNumber, bagPos)
+  local isLocked = itemInfo and itemInfo.locked or false
+  
+  if isLocked or IsInventoryItemLocked(slotId) then return end
+  
+  -- For weapons in combat, use PickupContainerItem + EquipCursorItem
+  -- This works for weapons even in combat
+  C_Container.PickupContainerItem(bagNumber, bagPos)
+  
+  -- EquipCursorItem works for weapons in combat
+  EquipCursorItem(slotId)
+  
+  -- Clear combat queue
+  mod.combatQueue.RemoveFromQueue(slotId)
+  
+  -- Force update of gearBar frames after item switch
+  if C_Timer and C_Timer.After then
+    C_Timer.After(0.1, function()
+      if mod.gearBar and mod.gearBar.UpdateGearBars then
+        mod.gearBar.UpdateGearBars(mod.gearBar.UpdateGearBarVisual)
+      end
+      if mod.configuration and mod.configuration.IsTrinketMenuEnabled() and mod.trinketMenu then
+        mod.trinketMenu.UpdateTrinketMenu()
+      end
+    end)
+    C_Timer.After(0.3, function()
+      if mod.gearBar and mod.gearBar.UpdateGearBars then
+        mod.gearBar.UpdateGearBars(mod.gearBar.UpdateGearBarVisual)
+      end
+      if mod.configuration and mod.configuration.IsTrinketMenuEnabled() and mod.trinketMenu then
+        mod.trinketMenu.UpdateTrinketMenu()
+      end
+    end)
   end
 end
 

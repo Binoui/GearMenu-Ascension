@@ -127,16 +127,6 @@ function me.LogError(tag, message)
 end
 
 --[[
-  @param {string} tag
-  @param {string} message
-]]--
-function me.LogEvent(tag, message)
-  if me.logEvent then
-    PrintLogMessage(me.colors.event, tag, message)
-  end
-end
-
---[[
   Display a message in the standard error frame
 
   @param {string} msg

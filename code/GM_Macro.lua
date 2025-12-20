@@ -104,8 +104,6 @@ function me.CheckSlotValidity(equipSlot, slotId)
   local gearSlots = mod.gearManager.GetGearSlotsForType(equipSlot)
 
   for i = 1, #gearSlots do
-      string.format("Comparing valid slot %s against passed slot %s", gearSlots[i].slotId, slotId)
-    )
     if gearSlots[i].slotId == slotId then
       return true -- abort when valid slot was found
     end

@@ -481,8 +481,6 @@ function me.UnsetKeyBinding(gearBarId, gearSlotPosition)
     return
   end
 
-    "Keybinding - resetting gearBar{" .. gearBarId .. "}gearSlot{" .. gearSlotPosition .. "} keybind")
-
   SetBinding(gearSlot.keyBinding)
   mod.gearBarManager.SetSlotKeyBinding(gearBarId, gearSlotPosition, nil)
   mod.gearBarConfigurationSubMenu.UpdateGearBarConfigurationMenu()
@@ -554,7 +552,6 @@ function me.CleanupKeyBindingOnSlots(newGearBarId, newGearSlotPosition, keyBindi
     for position, gearSlot in pairs(gearBar.slots) do
       if gearBar.id ~= newGearBarId or position ~= newGearSlotPosition then
         if gearSlot.keyBinding == keyBinding then
-            me.tag, "Leftover keyBinding found - resetting {" .. gearBar.id .. "} slotPos {" .. position .. "}")
           mod.gearBarManager.SetSlotKeyBinding(gearBar.id, position, nil)
         end
       end

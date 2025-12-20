@@ -105,7 +105,7 @@ function me.BuildUi(parentFrame)
     Create input elements
   ]]--
   local delaySlider = me.CreateDelaySlider(quickChangeContentFrame)
-  me.CreateAddRuleButton(delaySlider)
+  me.CreateAddRuleButton(quickChangeContentFrame, delaySlider)
   me.CreateRemoveRuleButton(quickChangeContentFrame)
   me.CreateInventoryTypeDropdown(quickChangeContentFrame)
   --[[
@@ -117,6 +117,8 @@ function me.BuildUi(parentFrame)
   fromScrollFrame = me.CreateFromItemList(quickChangeContentFrame)
   -- initial load of from list
   me.FromFauxScrollFrameOnUpdate(fromScrollFrame)
+  -- Create arrow between from and to lists
+  me.CreateArrowBetweenLists(quickChangeContentFrame)
   toScrollFrame = me.CreateToItemList(quickChangeContentFrame)
   -- initial load of to list
   me.ToFauxScrollFrameOnUpdate(toScrollFrame)
@@ -201,25 +203,45 @@ end
   Create a button for add new quickchange rules
 
   @param {table} parentFrame
+  @param {table} delaySlider
 ]]--
-function me.CreateAddRuleButton(parentFrame)
+function me.CreateAddRuleButton(parentFrame, delaySlider)
   local addRuleButton = CreateFrame(
     "Button",
     RGGM_CONSTANTS.ELEMENT_QUICK_CHANGE_ADD_RULE_BUTTON,
     parentFrame,
     "UIPanelButtonTemplate"
   )
-  addRuleButton:SetPoint("TOPLEFT", parentFrame, "TOPLEFT", 200, -400)
-  addRuleButton:SetText(rggm.L["quick_change_add_rule"])
-
-  local buttonSize = addRuleButton:GetTextWidth() + RGGM_CONSTANTS.QUICK_CHANGE_BUTTON_MARGIN
+  
+  -- Set button text first
+  local buttonText = rggm.L and rggm.L["quick_change_add_rule"] or "Add Rule"
+  addRuleButton:SetText(buttonText)
+  addRuleButton:SetHeight(RGGM_CONSTANTS.BUTTON_DEFAULT_HEIGHT)
+  
+  -- Get text width from the button's font string (same pattern as other buttons)
+  local buttonFontString = addRuleButton:GetFontString()
+  local buttonSize = 120 -- Default size
+  if buttonFontString then
+    local textWidth = buttonFontString:GetStringWidth()
+    if textWidth and textWidth > 0 then
+      buttonSize = textWidth + RGGM_CONSTANTS.QUICK_CHANGE_BUTTON_MARGIN
+    end
+  end
 
   if buttonSize < 100 then
     buttonSize = 100
   end
 
   addRuleButton:SetWidth(buttonSize)
+  
+  -- Position button just above the delay slider (slider is at y=-400, so button at y=-370)
+  addRuleButton:SetPoint("TOPLEFT", parentFrame, "TOPLEFT", 20, -370)
+  addRuleButton:SetFrameLevel(parentFrame:GetFrameLevel() + 10) -- Ensure button is on top
   addRuleButton:SetScript("OnClick", me.AddRuleOnClick)
+  
+  -- Ensure button is visible and enabled
+  addRuleButton:Enable()
+  addRuleButton:Show()
 end
 
 --[[
@@ -228,13 +250,15 @@ end
   @param {table} self
 ]]--
 function me.AddRuleOnClick(self)
-  local delaySlider = self:GetParent()
-  local delay = delaySlider:GetValue()
+  -- Find the delay slider by its global name
+  local delaySlider = _G[RGGM_CONSTANTS.ELEMENT_QUICK_CHANGE_DELAY_SLIDER]
+  local delay = 0
+  if delaySlider then
+    delay = delaySlider:GetValue() or 0
+  end
 
   if delay == nil then
-    -- internal user
-    mod.logger.LogError(me.tag, "Unable to read delay from delay slider")
-    return
+    delay = 0 -- Default to 0 if delay is nil
   end
 
   if selectedRule.from == nil then
@@ -270,17 +294,36 @@ function me.CreateRemoveRuleButton(frame)
     frame,
     "UIPanelButtonTemplate"
   )
-  removeRuleButton:SetPoint("TOPLEFT", frame, "TOPLEFT", 350, -100)
-  removeRuleButton:SetText(rggm.L["quick_change_remove_rule"])
-
-  local buttonSize = removeRuleButton:GetTextWidth() + RGGM_CONSTANTS.QUICK_CHANGE_BUTTON_MARGIN
+  
+  -- Set button text first
+  local buttonText = rggm.L and rggm.L["quick_change_remove_rule"] or "Remove Rule"
+  removeRuleButton:SetText(buttonText)
+  removeRuleButton:SetHeight(RGGM_CONSTANTS.BUTTON_DEFAULT_HEIGHT)
+  
+  -- Get text width from the button's font string (same pattern as other buttons)
+  local buttonFontString = removeRuleButton:GetFontString()
+  local buttonSize = 120 -- Default size
+  if buttonFontString then
+    local textWidth = buttonFontString:GetStringWidth()
+    if textWidth and textWidth > 0 then
+      buttonSize = textWidth + RGGM_CONSTANTS.QUICK_CHANGE_BUTTON_MARGIN
+    end
+  end
 
   if buttonSize < 100 then
     buttonSize = 100
   end
 
   removeRuleButton:SetWidth(buttonSize)
+  
+  -- Position button to the right of Add Rule button
+  removeRuleButton:SetPoint("TOPLEFT", frame, "TOPLEFT", 140, -370)
+  removeRuleButton:SetFrameLevel(frame:GetFrameLevel() + 10) -- Ensure button is on top
   removeRuleButton:SetScript("OnClick", me.RemoveRuleOnClick)
+  
+  -- Ensure button is visible and enabled
+  removeRuleButton:Enable()
+  removeRuleButton:Show()
 end
 
 --[[
@@ -477,9 +520,17 @@ function me.CreateRuleRowFrame(frame, position)
 
   row.fromItemName = fromItemName
 
+  -- Add arrow texture between from and to items
+  local arrowTexture = row:CreateFontString(nil, "OVERLAY")
+  arrowTexture:SetFont(STANDARD_TEXT_FONT, 14)
+  arrowTexture:SetPoint("LEFT", row.fromItemName, "RIGHT", 5, 0)
+  arrowTexture:SetText("→")
+  arrowTexture:SetTextColor(1, 1, 1, 1) -- White color
+  row.arrow = arrowTexture
+
   local toItemIcon = row:CreateTexture(nil, "ARTWORK")
   toItemIcon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
-  toItemIcon:SetPoint("LEFT", row.fromItemName, "RIGHT", 20, 0)
+  toItemIcon:SetPoint("LEFT", row.arrow, "RIGHT", 5, 0)
   toItemIcon:SetSize(
     16,
     16
@@ -522,6 +573,9 @@ end
 ]]--
 function me.RulesScrollFrameOnUpdate(scrollFrame)
   local quickChangeRules = mod.configuration.GetQuickChangeRules()
+  if not quickChangeRules then
+    quickChangeRules = {}
+  end
   local maxValue = #quickChangeRules or 0
 
   if maxValue <= RGGM_CONSTANTS.QUICK_CHANGE_MAX_ROWS then
@@ -560,6 +614,11 @@ function me.RulesScrollFrameOnUpdate(scrollFrame)
       
       row.fromItemId = quickChangeRules[value].changeFromItemId
       
+      -- Show arrow between from and to items
+      if row.arrow then
+        row.arrow:Show()
+      end
+      
       if quickChangeRules[value].changeToItemIcon then
         row.toItemIcon:SetTexture(quickChangeRules[value].changeToItemIcon)
         row.toItemIcon:Show()
@@ -593,9 +652,38 @@ function me.RulesScrollFrameOnUpdate(scrollFrame)
 
       row:Show()
     else
-      rulesRows[index]:Hide()
+      if rulesRows[index] then
+        rulesRows[index]:Hide()
+        -- Hide arrow when row is hidden
+        if rulesRows[index].arrow then
+          rulesRows[index].arrow:Hide()
+        end
+      end
     end
   end
+end
+
+--[[
+  Create a large arrow between the from and to lists to indicate the flow
+
+  @param {table} frame
+]]--
+function me.CreateArrowBetweenLists(frame)
+  local arrowFrame = CreateFrame("Frame", nil, frame)
+  arrowFrame:SetSize(50, 30)
+  -- Position between the two lists: from list is at x=20 (width 280, so ends at 300), to list starts at x=310
+  -- Center is at approximately x=290 (middle between 300 and 310)
+  -- Y position: lists start at -100, so center them vertically
+  arrowFrame:SetPoint("TOP", frame, "TOPLEFT", 290, -130)
+  
+  local arrowText = arrowFrame:CreateFontString(nil, "OVERLAY")
+  arrowText:SetFont(STANDARD_TEXT_FONT, 28, "OUTLINE")
+  arrowText:SetPoint("CENTER", arrowFrame, "CENTER", 0, 0)
+  arrowText:SetText("→")
+  arrowText:SetTextColor(1, 0.8, 0, 1) -- Orange/yellow color for better visibility
+  arrowText:Show()
+  
+  arrowFrame:Show()
 end
 
 --[[
@@ -642,7 +730,6 @@ function me.FromFauxScrollFrameOnUpdate(scrollFrame, slotId)
     -- invalidate cache
     fromCachedQuickChangeItems = nil
     fromCachedQuickChangeItems = mod.itemManager.FindQuickChangeItems(gearSlot.type, true)
-      me.tag, "Invalidated 'from' cached item list and updated items for new slotId: " .. selectedSlotId)
   end
 
   local maxValue = #fromCachedQuickChangeItems or 0
@@ -741,7 +828,6 @@ function me.ToFauxScrollFrameOnUpdate(scrollFrame, slotId)
     -- invalidate cache
     toCachedQuickChangeItems = nil
     toCachedQuickChangeItems = mod.itemManager.FindQuickChangeItems(gearSlot.type, false)
-      me.tag, "Invalidated 'to' cached item list and updated items for new slotId: " .. selectedSlotId)
   end
 
   local maxValue = #toCachedQuickChangeItems or 0

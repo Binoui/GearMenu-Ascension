@@ -66,10 +66,6 @@ function me.OnLoad(self)
   
   -- Register events
   me.RegisterEvents(self)
-  
-  if me.logger then
-    me.logger.LogDebug(me.tag, "Main frame loaded")
-  end
 end
 
 --[[
@@ -118,9 +114,6 @@ end
 ]]--
 function me.OnEvent(event, ...)
   if event == "PLAYER_ENTERING_WORLD" then
-    if me.logger then
-    end
-
     -- In WoW 3.3.5, PLAYER_ENTERING_WORLD may not have the same parameters
     -- Initialize on first PLAYER_ENTERING_WORLD event if not already done
     if not hasInitialized then
@@ -192,8 +185,6 @@ function me.OnEvent(event, ...)
         -- Fallback if C_Timer not available
         me.keyBind.OnUpdateKeyBindings()
       end
-    else
-      me.logger.LogDebug(me.tag, "Skipping UPDATE_BINDINGS - initialization not complete")
     end
   elseif event == "LOSS_OF_CONTROL_ADDED" then
 
@@ -266,27 +257,29 @@ function me.Initialize()
   
   -- Wrap initialization in error handler
   local success, err = pcall(function()
-    me.logger.LogDebug(me.tag, "Initialize addon")
-    
-    
-    -- Check all required modules exist
+    -- Check all required modules exist and provide detailed error messages
+    local missingModules = {}
     if not me.cmd then
-      error("Command module (cmd) not initialized")
+      table.insert(missingModules, "cmd (GM_Cmd.lua)")
     end
     if not me.configuration then
-      error("Configuration module not initialized")
+      table.insert(missingModules, "configuration (GM_Configuration.lua)")
     end
     if not me.addonConfiguration then
-      error("AddonConfiguration module not initialized")
+      table.insert(missingModules, "addonConfiguration (GM_AddonConfiguration.lua)")
     end
     if not me.themeCoordinator then
-      error("ThemeCoordinator module not initialized")
+      table.insert(missingModules, "themeCoordinator (GM_ThemeCoordinator.lua)")
     end
     if not me.gearBar then
-      error("GearBar module not initialized")
+      table.insert(missingModules, "gearBar (GM_GearBar.lua)")
     end
     if not me.gearBarChangeMenu then
-      error("GearBarChangeMenu module not initialized")
+      table.insert(missingModules, "gearBarChangeMenu (GM_GearBarChangeMenu.lua)")
+    end
+    
+    if #missingModules > 0 then
+      error("Missing required modules: " .. table.concat(missingModules, ", ") .. ". Please check that all files are loaded correctly.")
     end
     
     -- setup slash commands
@@ -323,7 +316,8 @@ function me.Initialize()
     local errorMsg = "|cffff0000GearMenu Initialization Error:|r " .. tostring(err)
     if me.logger then
       me.logger.LogError(me.tag, "Initialization failed: " .. tostring(err))
-      me.logger.LogError(me.tag, "Stack trace: " .. debug.traceback())
+      -- Note: debug.traceback() is not available in WoW 3.3.5
+      -- The error message already contains the stack trace information
     end
     -- Try to show error in chat
     if DEFAULT_CHAT_FRAME then

@@ -28,6 +28,8 @@
 -- luacheck: globals INVSLOT_BACK INVSLOT_MAINHAND INVSLOT_OFFHAND INVSLOT_RANGED INVSLOT_AMMO GetAddOnMetadata ReloadUI
 -- luacheck: globals GetBindingKey SetBinding SetBindingClick GetCurrentBindingSet SaveBindings
 
+-- Ensure rggm namespace exists
+rggm = rggm or {}
 local mod = rggm
 local me = {}
 mod.configuration = me
@@ -787,8 +789,6 @@ function me.SaveUserPlacedFramePosition(frameName, point, relativeTo, relativePo
   GearMenuConfiguration.frames[frameName].point = point
   GearMenuConfiguration.frames[frameName].relativeTo = relativeTo
   GearMenuConfiguration.frames[frameName].relativePoint = relativePoint
-
-    .. " - new pos: posX " .. posX .. " posY " .. posY .. " point " .. point)
 end
 
 --[[
