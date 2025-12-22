@@ -66,6 +66,29 @@ function me.SetupSlashCmdList()
       ShowInfoMessage()
     elseif args[1] == "rl" or args[1] == "reload" then
       ReloadUI()
+    elseif args[1] == "memory" or args[1] == "mem" then
+      -- Memory diagnostics
+      local tickerCount = 0
+      
+      -- Check tickers
+      if mod.ticker then
+        if mod.ticker.combatQueueTicker and not mod.ticker.combatQueueTicker:IsCancelled() then
+          tickerCount = tickerCount + 1
+        end
+        if mod.ticker.changeMenuTicker and not mod.ticker.changeMenuTicker:IsCancelled() then
+          tickerCount = tickerCount + 1
+        end
+        if mod.ticker.rangeCheckTicker and not mod.ticker.rangeCheckTicker:IsCancelled() then
+          tickerCount = tickerCount + 1
+        end
+      end
+      
+      print("|cFF00FFB0GearMenu Memory Info:|r")
+      print("Active Tickers: " .. tickerCount)
+      print("|cFFFF0000Note:|r If you see 'out of memory' errors:")
+      print("1. /rggm rl - Reload UI to clear memory")
+      print("2. Disable other addons to test")
+      print("3. Check if errors persist without GearMenu")
     elseif args[1] == "opt" then
       if mod.addonConfiguration and mod.addonConfiguration.OpenMainCategory then
         mod.addonConfiguration.OpenMainCategory()
