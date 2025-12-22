@@ -36,6 +36,30 @@ mod.itemManager = me
 
 me.tag = "ItemManager"
 
+-- Secure buttons for equipping weapons in combat (must be created before combat)
+local secureEquipButtons = {
+  mainhand = nil,
+  offhand = nil
+}
+
+--[[
+  Initialize secure buttons for weapon equipping in combat
+  Must be called before entering combat
+]]--
+function me.InitializeSecureButtons()
+  if not secureEquipButtons.mainhand then
+    secureEquipButtons.mainhand = CreateFrame("Button", "GM_SecureEquipMainHand", UIParent, "SecureActionButtonTemplate")
+    secureEquipButtons.mainhand:SetAttribute("type", "macro")
+    secureEquipButtons.mainhand:Hide()
+  end
+  
+  if not secureEquipButtons.offhand then
+    secureEquipButtons.offhand = CreateFrame("Button", "GM_SecureEquipOffHand", UIParent, "SecureActionButtonTemplate")
+    secureEquipButtons.offhand:SetAttribute("type", "macro")
+    secureEquipButtons.offhand:Hide()
+  end
+end
+
 --[[
   Retrieve all items from inventory bags matching any type of
     INVTYPE_HEAD
@@ -183,7 +207,7 @@ end
 
 --[[
   Switch items using secure method (for weapons in combat)
-  Uses PickupContainerItem + EquipCursorItem which works for weapons in combat
+  Uses SecureActionButton with macro to equip weapons in combat
 
   @param {number} itemId
   @param {number} slotId
@@ -200,12 +224,47 @@ function me.SwitchItemsSecure(itemId, slotId)
   
   if isLocked or IsInventoryItemLocked(slotId) then return end
   
-  -- For weapons in combat, use PickupContainerItem + EquipCursorItem
-  -- This works for weapons even in combat
-  C_Container.PickupContainerItem(bagNumber, bagPos)
+  -- Get item name for macro
+  local itemName = GetItemInfo(itemId)
+  if not itemName then return end
   
-  -- EquipCursorItem works for weapons in combat
-  EquipCursorItem(slotId)
+  -- Select the appropriate secure button
+  local secureButton = nil
+  if slotId == INVSLOT_MAINHAND then
+    secureButton = secureEquipButtons.mainhand
+  elseif slotId == INVSLOT_OFFHAND then
+    secureButton = secureEquipButtons.offhand
+  end
+  
+  if not secureButton then
+    -- Fallback: try to use EquipCursorItem (may not work in combat)
+    C_Container.PickupContainerItem(bagNumber, bagPos)
+    EquipCursorItem(slotId)
+  else
+    -- Use secure button with macro to equip item in specific slot
+    -- In WoW 3.3.5, /equipslot slotNumber itemName works for weapons in combat
+    local slotNumber = nil
+    if slotId == INVSLOT_MAINHAND then
+      slotNumber = 16
+    elseif slotId == INVSLOT_OFFHAND then
+      slotNumber = 17
+    end
+    
+    if slotNumber then
+      -- Create macro text to equip the item in the slot
+      -- Escape item name for macro (remove brackets if present)
+      local safeItemName = itemName:gsub("%[", ""):gsub("%]", "")
+      local macroText = string.format("/equipslot %d %s", slotNumber, safeItemName)
+      secureButton:SetAttribute("macrotext", macroText)
+      
+      -- Click the button to execute the macro
+      secureButton:Click()
+    else
+      -- Fallback: try to use EquipCursorItem
+      C_Container.PickupContainerItem(bagNumber, bagPos)
+      EquipCursorItem(slotId)
+    end
+  end
   
   -- Clear combat queue
   mod.combatQueue.RemoveFromQueue(slotId)

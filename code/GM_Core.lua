@@ -286,6 +286,10 @@ function me.Initialize()
     me.cmd.SetupSlashCmdList()
     -- load addon variables
     me.configuration.SetupConfiguration()
+    -- initialize secure buttons for weapon equipping in combat
+    if me.itemManager and me.itemManager.InitializeSecureButtons then
+      me.itemManager.InitializeSecureButtons()
+    end
     -- setup addon configuration ui
     me.addonConfiguration.SetupAddonConfiguration()
     -- sync up theme (needs to be happening before accessing ui elements)
