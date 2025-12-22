@@ -7,6 +7,26 @@
 if not C_Timer then
   C_Timer = {}
   
+  -- Frame pool for recycling timer frames to prevent memory leaks
+  local timerFramePool = {}
+  local MAX_POOL_SIZE = 10 -- Maximum frames to keep in pool
+  
+  local function GetTimerFrame()
+    local frame = table.remove(timerFramePool)
+    if not frame then
+      frame = CreateFrame("Frame")
+    end
+    return frame
+  end
+  
+  local function ReturnTimerFrame(frame)
+    if frame and #timerFramePool < MAX_POOL_SIZE then
+      frame:SetScript("OnUpdate", nil)
+      frame:Hide()
+      table.insert(timerFramePool, frame)
+    end
+  end
+  
   -- Timer object for NewTicker
   local Ticker = {}
   Ticker.__index = Ticker
@@ -23,20 +43,20 @@ if not C_Timer then
     return self.cancelled == true
   end
   
-  -- Create a frame-based timer for After
+  -- Create a frame-based timer for After (with frame recycling to prevent memory leaks)
   function C_Timer.After(delay, callback)
-    local frame = CreateFrame("Frame")
+    local frame = GetTimerFrame()
     local cancelled = false
     local target = GetTime() + (tonumber(delay) or 0)
-    frame:SetScript("OnUpdate", function(self)
+    frame:SetScript("OnUpdate", function(self, elapsed)
       if cancelled then
         self:SetScript("OnUpdate", nil)
-        self:Hide()
+        ReturnTimerFrame(self)
         return
       end
       if GetTime() >= target then
         self:SetScript("OnUpdate", nil)
-        self:Hide()
+        ReturnTimerFrame(self)
         callback()
       end
     end)
