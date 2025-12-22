@@ -303,21 +303,11 @@ function me.SwitchItems(itemId, slotId)
 
       mod.combatQueue.RemoveFromQueue(slotId)
 
-      -- Force update of gearBar frames after item switch
+      -- Force update of gearBar frames after item switch (consolidated to single timer)
       -- Use a small delay to ensure the inventory change has been processed
       -- In WoW 3.3.5, inventory updates can take a moment to propagate
       if C_Timer and C_Timer.After then
-        -- First update after a short delay
-        C_Timer.After(0.1, function()
-          if mod.gearBar and mod.gearBar.UpdateGearBars then
-            mod.gearBar.UpdateGearBars(mod.gearBar.UpdateGearBarVisual)
-          end
-          if mod.configuration and mod.configuration.IsTrinketMenuEnabled() and mod.trinketMenu then
-            mod.trinketMenu.UpdateTrinketMenu()
-          end
-        end)
-        -- Second update after a longer delay to ensure everything is synced
-        C_Timer.After(0.3, function()
+        C_Timer.After(0.2, function()
           if mod.gearBar and mod.gearBar.UpdateGearBars then
             mod.gearBar.UpdateGearBars(mod.gearBar.UpdateGearBarVisual)
           end
