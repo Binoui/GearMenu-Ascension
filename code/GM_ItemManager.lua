@@ -36,30 +36,6 @@ mod.itemManager = me
 
 me.tag = "ItemManager"
 
--- Secure buttons for equipping weapons in combat (must be created before combat)
-local secureEquipButtons = {
-  mainhand = nil,
-  offhand = nil
-}
-
---[[
-  Initialize secure buttons for weapon equipping in combat
-  Must be called before entering combat
-]]--
-function me.InitializeSecureButtons()
-  if not secureEquipButtons.mainhand then
-    secureEquipButtons.mainhand = CreateFrame("Button", "GM_SecureEquipMainHand", UIParent, "SecureActionButtonTemplate")
-    secureEquipButtons.mainhand:SetAttribute("type", "macro")
-    secureEquipButtons.mainhand:Hide()
-  end
-  
-  if not secureEquipButtons.offhand then
-    secureEquipButtons.offhand = CreateFrame("Button", "GM_SecureEquipOffHand", UIParent, "SecureActionButtonTemplate")
-    secureEquipButtons.offhand:SetAttribute("type", "macro")
-    secureEquipButtons.offhand:Hide()
-  end
-end
-
 --[[
   Retrieve all items from inventory bags matching any type of
     INVTYPE_HEAD
