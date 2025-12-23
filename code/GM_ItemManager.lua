@@ -162,8 +162,11 @@ function me.EquipItemById(itemId, slotId)
   -- For weapons, allow switching in combat (ignore IsEquipChangeBlocked for weapons)
   if isWeaponSlot then
     -- Weapons can be switched in combat, only check for dead/casting
+    -- NEVER add weapons to queue - always try to equip directly
     if isDead or isCasting then
-      mod.combatQueue.AddToQueue(itemId, slotId)
+      -- If dead or casting, weapons can't be equipped, but don't queue them
+      -- They will be equipped when conditions allow
+      return
     else
       -- For weapons in combat, use secure method
       if inCombat then
@@ -211,8 +214,8 @@ function me.SwitchItemsSecure(itemId, slotId)
   
   -- Check if item is on cursor before trying to equip
   if not CursorHasItem() then
-    -- Failed to pick up item, add to queue as fallback
-    mod.combatQueue.AddToQueue(itemId, slotId)
+    -- Failed to pick up item - this shouldn't happen, but if it does, don't queue
+    -- Weapons should be swappable in combat, so don't add to queue
     return
   end
   
@@ -227,9 +230,12 @@ function me.SwitchItemsSecure(itemId, slotId)
     C_Timer.After(0.05, function()
       if CursorHasItem() then
         -- EquipCursorItem failed, item is still on cursor
-        -- This means it couldn't be equipped, add to queue
-        ClearCursor()
-        mod.combatQueue.AddToQueue(itemId, slotId)
+        -- For weapons in combat, don't add to queue - leave item on cursor
+        -- The player can manually equip it by clicking the inventory slot
+        -- This is better than queuing it, as weapons CAN be swapped in combat manually
+        -- Just clear the queue entry if it exists
+        mod.combatQueue.RemoveFromQueue(slotId)
+        -- Don't clear cursor - let player manually equip
       else
         -- Success! Item was equipped (cursor is empty)
         mod.combatQueue.RemoveFromQueue(slotId)
@@ -238,8 +244,8 @@ function me.SwitchItemsSecure(itemId, slotId)
   else
     -- Fallback: check immediately
     if CursorHasItem() then
-      ClearCursor()
-      mod.combatQueue.AddToQueue(itemId, slotId)
+      -- EquipCursorItem failed, leave item on cursor for manual equip
+      mod.combatQueue.RemoveFromQueue(slotId)
       return
     else
       mod.combatQueue.RemoveFromQueue(slotId)
