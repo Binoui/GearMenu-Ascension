@@ -43,49 +43,28 @@ _G.GearMenuEquipMainhandItemName = nil
 _G.GearMenuEquipOffhandSlotId = nil
 _G.GearMenuEquipOffhandItemName = nil
 
--- SecureActionButtons for weapon equipping in combat
--- These use SecureHandlerWrapScript with global variables to avoid SetAttribute calls
-local secureEquipButtons = {
-  mainhand = nil,
-  offhand = nil
-}
+-- Use existing inventory frames for weapon equipping in combat
+-- CharacterMainHandSlot and CharacterSecondaryHandSlot are already SecureActionButtons
+local function GetInventorySlotFrame(slotId)
+  if slotId == INVSLOT_MAINHAND then
+    return _G.CharacterMainHandSlot
+  elseif slotId == INVSLOT_OFFHAND then
+    return _G.CharacterSecondaryHandSlot
+  end
+  return nil
+end
 
 --[[
   Initialize secure equip buttons for weapons
-  These buttons use SecureHandlerWrapScript with global variables to avoid SetAttribute calls
+  We use the existing inventory frames which are already SecureActionButtons
 ]]--
 function me.InitializeSecureEquipButtons()
-  if secureEquipButtons.mainhand and secureEquipButtons.offhand then
-    return -- Already initialized
+  -- No initialization needed - we use existing frames
+  -- Just verify they exist
+  if not _G.CharacterMainHandSlot or not _G.CharacterSecondaryHandSlot then
+    -- Frames don't exist yet, they will be created when character frame is shown
+    return
   end
-  
-  -- Create secure button for mainhand
-  secureEquipButtons.mainhand = CreateFrame("Button", "GearMenuSecureEquipMainhand", nil, "SecureActionButtonTemplate")
-  secureEquipButtons.mainhand:SetAttribute("type", "macro")
-  
-  -- Create secure button for offhand
-  secureEquipButtons.offhand = CreateFrame("Button", "GearMenuSecureEquipOffhand", nil, "SecureActionButtonTemplate")
-  secureEquipButtons.offhand:SetAttribute("type", "macro")
-  
-  -- Use SecureHandlerWrapScript with global variables to execute macro directly
-  -- We can't use SetAttribute in combat, so we execute the macro command directly
-  SecureHandlerWrapScript(secureEquipButtons.mainhand, "OnClick", secureEquipButtons.mainhand, 
-    [[
-      local slotId = GearMenuEquipMainhandSlotId
-      local itemName = GearMenuEquipMainhandItemName
-      if slotId and itemName then
-        RunMacroText("/equipslot " .. slotId .. " " .. itemName)
-      end
-    ]])
-  
-  SecureHandlerWrapScript(secureEquipButtons.offhand, "OnClick", secureEquipButtons.offhand,
-    [[
-      local slotId = GearMenuEquipOffhandSlotId
-      local itemName = GearMenuEquipOffhandItemName
-      if slotId and itemName then
-        RunMacroText("/equipslot " .. slotId .. " " .. itemName)
-      end
-    ]])
 end
 
 --[[
@@ -257,18 +236,9 @@ function me.SwitchItemsSecure(itemId, slotId)
   
   if isLocked or IsInventoryItemLocked(slotId) then return end
   
-  -- Initialize secure buttons if needed
-  me.InitializeSecureEquipButtons()
-  
-  -- Determine which button to use
-  local button = nil
-  if slotId == INVSLOT_MAINHAND then
-    button = secureEquipButtons.mainhand
-  elseif slotId == INVSLOT_OFFHAND then
-    button = secureEquipButtons.offhand
-  end
-  
-  if not button then
+  -- Get the inventory slot frame (already a SecureActionButton)
+  local slotFrame = GetInventorySlotFrame(slotId)
+  if not slotFrame then
     -- Not a weapon slot, can't use secure method
     mod.combatQueue.RemoveFromQueue(slotId)
     return
@@ -282,18 +252,34 @@ function me.SwitchItemsSecure(itemId, slotId)
     return
   end
   
-  -- Set global variables (these can be modified even in combat)
-  -- SecureHandlers will read these values
-  if slotId == INVSLOT_MAINHAND then
-    _G.GearMenuEquipMainhandSlotId = slotId
-    _G.GearMenuEquipMainhandItemName = itemName
-  elseif slotId == INVSLOT_OFFHAND then
-    _G.GearMenuEquipOffhandSlotId = slotId
-    _G.GearMenuEquipOffhandItemName = itemName
+  -- Set up a SecureHandler on the inventory slot frame to equip the item
+  -- We can't modify attributes in combat, but we can use SecureHandlerWrapScript
+  -- to read global variables and set the macrotext
+  if not slotFrame._gearMenuHandlerSet then
+    SecureHandlerWrapScript(slotFrame, "OnClick", slotFrame,
+      [[
+        local itemName = self:GetAttribute("gearMenuItemName")
+        if itemName then
+          self:SetAttribute("macrotext", "/use " .. itemName)
+        end
+      ]])
+    slotFrame._gearMenuHandlerSet = true
   end
   
-  -- Click the button to execute the macro
-  button:Click()
+  -- Set the item name attribute (this can be done before combat or via SecureHandler)
+  -- But we can't do it in combat, so we use a global variable instead
+  _G.GearMenuEquipItemName = itemName
+  
+  -- Use SecureHandler to set the attribute from global variable
+  SecureHandlerExecute(slotFrame, [[
+    local itemName = GearMenuEquipItemName
+    if itemName then
+      self:SetAttribute("gearMenuItemName", itemName)
+    end
+  ]])
+  
+  -- Click the slot frame to execute the macro
+  slotFrame:Click()
   
   -- Clear combat queue
   mod.combatQueue.RemoveFromQueue(slotId)
