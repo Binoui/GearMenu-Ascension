@@ -36,8 +36,15 @@ mod.itemManager = me
 
 me.tag = "ItemManager"
 
+-- Global variables for secure handlers (can be modified even in combat)
+-- These are used by SecureHandlers to read values without needing SetAttribute
+_G.GearMenuEquipMainhandSlotId = nil
+_G.GearMenuEquipMainhandItemName = nil
+_G.GearMenuEquipOffhandSlotId = nil
+_G.GearMenuEquipOffhandItemName = nil
+
 -- SecureActionButtons for weapon equipping in combat
--- These use SecureHandlerWrapScript to allow dynamic macro updates even in combat
+-- These use SecureHandlerWrapScript with global variables to avoid SetAttribute calls
 local secureEquipButtons = {
   mainhand = nil,
   offhand = nil
@@ -45,7 +52,7 @@ local secureEquipButtons = {
 
 --[[
   Initialize secure equip buttons for weapons
-  These buttons use SecureHandlerWrapScript to allow dynamic macro updates even in combat
+  These buttons use SecureHandlerWrapScript with global variables to avoid SetAttribute calls
 ]]--
 function me.InitializeSecureEquipButtons()
   if secureEquipButtons.mainhand and secureEquipButtons.offhand then
@@ -60,13 +67,12 @@ function me.InitializeSecureEquipButtons()
   secureEquipButtons.offhand = CreateFrame("Button", "GearMenuSecureEquipOffhand", nil, "SecureActionButtonTemplate")
   secureEquipButtons.offhand:SetAttribute("type", "macro")
   
-  -- Use SecureHandlerWrapScript to allow dynamic macro updates even in combat
-  -- This handler can modify attributes even during combat lockdown
-  -- Use /equipslot with slot ID and item name
+  -- Use SecureHandlerWrapScript with global variables to avoid SetAttribute calls
+  -- Global variables can be modified even in combat, and SecureHandlers can read them
   SecureHandlerWrapScript(secureEquipButtons.mainhand, "OnClick", secureEquipButtons.mainhand, 
     [[
-      local slotId = self:GetAttribute("slotId")
-      local itemName = self:GetAttribute("itemName")
+      local slotId = GearMenuEquipMainhandSlotId
+      local itemName = GearMenuEquipMainhandItemName
       if slotId and itemName then
         self:SetAttribute("macrotext", "/equipslot " .. slotId .. " " .. itemName)
       end
@@ -74,8 +80,8 @@ function me.InitializeSecureEquipButtons()
   
   SecureHandlerWrapScript(secureEquipButtons.offhand, "OnClick", secureEquipButtons.offhand,
     [[
-      local slotId = self:GetAttribute("slotId")
-      local itemName = self:GetAttribute("itemName")
+      local slotId = GearMenuEquipOffhandSlotId
+      local itemName = GearMenuEquipOffhandItemName
       if slotId and itemName then
         self:SetAttribute("macrotext", "/equipslot " .. slotId .. " " .. itemName)
       end
@@ -276,9 +282,15 @@ function me.SwitchItemsSecure(itemId, slotId)
     return
   end
   
-  -- Set slot ID and item name attributes (these can be set even in combat via SecureHandler)
-  button:SetAttribute("slotId", slotId)
-  button:SetAttribute("itemName", itemName)
+  -- Set global variables (these can be modified even in combat)
+  -- SecureHandlers will read these values
+  if slotId == INVSLOT_MAINHAND then
+    _G.GearMenuEquipMainhandSlotId = slotId
+    _G.GearMenuEquipMainhandItemName = itemName
+  elseif slotId == INVSLOT_OFFHAND then
+    _G.GearMenuEquipOffhandSlotId = slotId
+    _G.GearMenuEquipOffhandItemName = itemName
+  end
   
   -- Click the button to execute the macro
   button:Click()
