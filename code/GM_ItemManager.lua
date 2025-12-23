@@ -36,6 +36,52 @@ mod.itemManager = me
 
 me.tag = "ItemManager"
 
+-- SecureActionButtons for weapon equipping in combat
+-- These use SecureHandlerWrapScript to allow dynamic macro updates even in combat
+local secureEquipButtons = {
+  mainhand = nil,
+  offhand = nil
+}
+
+--[[
+  Initialize secure equip buttons for weapons
+  These buttons use SecureHandlerWrapScript to allow dynamic macro updates even in combat
+]]--
+function me.InitializeSecureEquipButtons()
+  if secureEquipButtons.mainhand and secureEquipButtons.offhand then
+    return -- Already initialized
+  end
+  
+  -- Create secure button for mainhand
+  secureEquipButtons.mainhand = CreateFrame("Button", "GearMenuSecureEquipMainhand", nil, "SecureActionButtonTemplate")
+  secureEquipButtons.mainhand:SetAttribute("type", "macro")
+  
+  -- Create secure button for offhand
+  secureEquipButtons.offhand = CreateFrame("Button", "GearMenuSecureEquipOffhand", nil, "SecureActionButtonTemplate")
+  secureEquipButtons.offhand:SetAttribute("type", "macro")
+  
+  -- Use SecureHandlerWrapScript to allow dynamic macro updates even in combat
+  -- This handler can modify attributes even during combat lockdown
+  -- Use /equipslot with slot ID and item name
+  SecureHandlerWrapScript(secureEquipButtons.mainhand, "OnClick", secureEquipButtons.mainhand, 
+    [[
+      local slotId = self:GetAttribute("slotId")
+      local itemName = self:GetAttribute("itemName")
+      if slotId and itemName then
+        self:SetAttribute("macrotext", "/equipslot " .. slotId .. " " .. itemName)
+      end
+    ]])
+  
+  SecureHandlerWrapScript(secureEquipButtons.offhand, "OnClick", secureEquipButtons.offhand,
+    [[
+      local slotId = self:GetAttribute("slotId")
+      local itemName = self:GetAttribute("itemName")
+      if slotId and itemName then
+        self:SetAttribute("macrotext", "/equipslot " .. slotId .. " " .. itemName)
+      end
+    ]])
+end
+
 --[[
   Retrieve all items from inventory bags matching any type of
     INVTYPE_HEAD
@@ -205,55 +251,51 @@ function me.SwitchItemsSecure(itemId, slotId)
   
   if isLocked or IsInventoryItemLocked(slotId) then return end
   
-  -- For weapons in combat in WoW 3.3.5:
-  -- UseContainerItem in combat acts like left-click (pickup), not right-click (equip)
-  -- So we need to use UseContainerItem to pick up, then EquipCursorItem to equip
-  UseContainerItem(bagNumber, bagPos)
+  -- Initialize secure buttons if needed
+  me.InitializeSecureEquipButtons()
   
-  -- Check if item is on cursor (UseContainerItem should have picked it up)
+  -- Determine which button to use
+  local button = nil
+  if slotId == INVSLOT_MAINHAND then
+    button = secureEquipButtons.mainhand
+  elseif slotId == INVSLOT_OFFHAND then
+    button = secureEquipButtons.offhand
+  end
+  
+  if not button then
+    -- Not a weapon slot, can't use secure method
+    mod.combatQueue.RemoveFromQueue(slotId)
+    return
+  end
+  
+  -- Get item name for the macro
+  local itemName = GetItemInfo(itemId)
+  if not itemName then
+    -- Can't get item name, can't equip
+    mod.combatQueue.RemoveFromQueue(slotId)
+    return
+  end
+  
+  -- Set slot ID and item name attributes (these can be set even in combat via SecureHandler)
+  button:SetAttribute("slotId", slotId)
+  button:SetAttribute("itemName", itemName)
+  
+  -- Click the button to execute the macro
+  button:Click()
+  
+  -- Clear combat queue
+  mod.combatQueue.RemoveFromQueue(slotId)
+  
+  -- Force update of gearBar frames after item switch
   if C_Timer and C_Timer.After then
-    C_Timer.After(0.05, function()
-      if CursorHasItem() then
-        -- Item is on cursor, now equip it to the slot
-        EquipCursorItem(slotId)
-        
-        -- Check if equip succeeded
-        C_Timer.After(0.05, function()
-          if CursorHasItem() then
-            -- Equip failed, clear cursor and don't queue
-            ClearCursor()
-            mod.combatQueue.RemoveFromQueue(slotId)
-          else
-            -- Success! Item was equipped
-            mod.combatQueue.RemoveFromQueue(slotId)
-            
-            -- Force update of gearBar frames
-            if mod.gearBar and mod.gearBar.UpdateGearBars then
-              mod.gearBar.UpdateGearBars(mod.gearBar.UpdateGearBarVisual)
-            end
-            if mod.configuration and mod.configuration.IsTrinketMenuEnabled() and mod.trinketMenu then
-              mod.trinketMenu.UpdateTrinketMenu()
-            end
-          end
-        end)
-      else
-        -- UseContainerItem didn't pick up item, don't queue
-        mod.combatQueue.RemoveFromQueue(slotId)
+    C_Timer.After(0.2, function()
+      if mod.gearBar and mod.gearBar.UpdateGearBars then
+        mod.gearBar.UpdateGearBars(mod.gearBar.UpdateGearBarVisual)
+      end
+      if mod.configuration and mod.configuration.IsTrinketMenuEnabled() and mod.trinketMenu then
+        mod.trinketMenu.UpdateTrinketMenu()
       end
     end)
-  else
-    -- Fallback: try immediately
-    if CursorHasItem() then
-      EquipCursorItem(slotId)
-      if not CursorHasItem() then
-        mod.combatQueue.RemoveFromQueue(slotId)
-      else
-        ClearCursor()
-        mod.combatQueue.RemoveFromQueue(slotId)
-      end
-    else
-      mod.combatQueue.RemoveFromQueue(slotId)
-    end
   end
 end
 

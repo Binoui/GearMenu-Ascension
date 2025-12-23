@@ -290,6 +290,10 @@ function me.Initialize()
     me.addonConfiguration.SetupAddonConfiguration()
     -- sync up theme (needs to be happening before accessing ui elements)
     me.themeCoordinator.UpdateTheme()
+    -- initialize secure equip buttons for weapons in combat
+    if me.itemManager and me.itemManager.InitializeSecureEquipButtons then
+      me.itemManager.InitializeSecureEquipButtons()
+    end
     -- build ui for all gearBars
     me.gearBar.BuildGearBars()
     -- build ui for changeMenu
