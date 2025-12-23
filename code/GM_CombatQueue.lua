@@ -108,8 +108,12 @@ function me.ProcessQueue()
       -- Weapons can be switched in combat in WoW 3.3.5
       if isWeaponSlot and not isCasting then
         -- Weapons can be switched in combat, bypass InCombatLockdown check
+        -- Try to equip directly - this should work for weapons
         mod.itemManager.EquipItemById(combatQueueStore[gearSlot.slotId], gearSlot.slotId)
-        mod.gearBar.UpdateCombatQueue(gearSlot.slotId, combatQueueStore[gearSlot.slotId])
+        -- Only update queue display if item is still in queue (equip might have failed)
+        if combatQueueStore[gearSlot.slotId] ~= nil then
+          mod.gearBar.UpdateCombatQueue(gearSlot.slotId, combatQueueStore[gearSlot.slotId])
+        end
       elseif not inCombatLockdown and not isCasting then
         -- Non-weapon items: only proceed if not in combat lockdown and not casting
         mod.itemManager.EquipItemById(combatQueueStore[gearSlot.slotId], gearSlot.slotId)

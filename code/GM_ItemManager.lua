@@ -183,8 +183,9 @@ end
 
 --[[
   Switch items using secure method (for weapons in combat)
-  In WoW 3.3.5, weapons can be swapped in combat using PickupInventoryItem + PickupContainerItem
-  This works because weapons are exempt from combat restrictions
+  In WoW 3.3.5, weapons can be equipped in combat using PickupContainerItem + EquipCursorItem
+  PickupInventoryItem is blocked in combat, so we can't do a direct swap
+  Instead, we pick up the new weapon and equip it directly, which will swap with the current weapon
 
   @param {number} itemId
   @param {number} slotId
@@ -201,24 +202,34 @@ function me.SwitchItemsSecure(itemId, slotId)
   
   if isLocked or IsInventoryItemLocked(slotId) then return end
   
-  -- For weapons in combat in WoW 3.3.5, we can use PickupInventoryItem + PickupContainerItem
-  -- This creates a swap: current weapon goes to bag, new weapon goes to slot
-  -- This works for weapons even in combat
+  -- For weapons in combat in WoW 3.3.5:
+  -- PickupInventoryItem is blocked, but we can use PickupContainerItem + EquipCursorItem
+  -- EquipCursorItem will swap the weapon on cursor with the one in the slot
   
-  -- First, pick up the current weapon from the slot
-  PickupInventoryItem(slotId)
-  
-  -- Then, pick up the new weapon from the bag
-  -- This will swap them: new weapon goes to slot, old weapon goes to bag
+  -- Pick up the new weapon from the bag
   C_Container.PickupContainerItem(bagNumber, bagPos)
   
-  -- If there's still something on the cursor, put it back in the bag
-  if CursorHasItem() then
-    -- Try to put it in the same bag slot (swap back if needed)
-    C_Container.PickupContainerItem(bagNumber, bagPos)
+  -- Check if item is on cursor before trying to equip
+  if not CursorHasItem() then
+    -- Failed to pick up item, add to queue as fallback
+    mod.combatQueue.AddToQueue(itemId, slotId)
+    return
   end
   
-  -- Clear combat queue
+  -- Equip it directly - this will swap with the current weapon in the slot
+  -- EquipCursorItem works for weapons even in combat
+  EquipCursorItem(slotId)
+  
+  -- Check if item was successfully equipped (cursor should be empty)
+  if CursorHasItem() then
+    -- EquipCursorItem failed, item is still on cursor
+    -- This means it couldn't be equipped, add to queue
+    ClearCursor()
+    mod.combatQueue.AddToQueue(itemId, slotId)
+    return
+  end
+  
+  -- Success! Item was equipped, clear combat queue
   mod.combatQueue.RemoveFromQueue(slotId)
   
   -- Force update of gearBar frames after item switch (consolidated to single timer)
