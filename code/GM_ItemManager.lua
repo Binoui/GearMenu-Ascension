@@ -206,23 +206,54 @@ function me.SwitchItemsSecure(itemId, slotId)
   if isLocked or IsInventoryItemLocked(slotId) then return end
   
   -- For weapons in combat in WoW 3.3.5:
-  -- Use UseContainerItem - this is the same method as right-clicking in inventory
-  -- It works in combat for weapons and automatically equips to the correct slot
+  -- UseContainerItem in combat acts like left-click (pickup), not right-click (equip)
+  -- So we need to use UseContainerItem to pick up, then EquipCursorItem to equip
   UseContainerItem(bagNumber, bagPos)
   
-  -- Clear combat queue (item was equipped via UseContainerItem)
-  mod.combatQueue.RemoveFromQueue(slotId)
-  
-  -- Force update of gearBar frames after item switch (consolidated to single timer)
+  -- Check if item is on cursor (UseContainerItem should have picked it up)
   if C_Timer and C_Timer.After then
-    C_Timer.After(0.2, function()
-      if mod.gearBar and mod.gearBar.UpdateGearBars then
-        mod.gearBar.UpdateGearBars(mod.gearBar.UpdateGearBarVisual)
-      end
-      if mod.configuration and mod.configuration.IsTrinketMenuEnabled() and mod.trinketMenu then
-        mod.trinketMenu.UpdateTrinketMenu()
+    C_Timer.After(0.05, function()
+      if CursorHasItem() then
+        -- Item is on cursor, now equip it to the slot
+        EquipCursorItem(slotId)
+        
+        -- Check if equip succeeded
+        C_Timer.After(0.05, function()
+          if CursorHasItem() then
+            -- Equip failed, clear cursor and don't queue
+            ClearCursor()
+            mod.combatQueue.RemoveFromQueue(slotId)
+          else
+            -- Success! Item was equipped
+            mod.combatQueue.RemoveFromQueue(slotId)
+            
+            -- Force update of gearBar frames
+            if mod.gearBar and mod.gearBar.UpdateGearBars then
+              mod.gearBar.UpdateGearBars(mod.gearBar.UpdateGearBarVisual)
+            end
+            if mod.configuration and mod.configuration.IsTrinketMenuEnabled() and mod.trinketMenu then
+              mod.trinketMenu.UpdateTrinketMenu()
+            end
+          end
+        end)
+      else
+        -- UseContainerItem didn't pick up item, don't queue
+        mod.combatQueue.RemoveFromQueue(slotId)
       end
     end)
+  else
+    -- Fallback: try immediately
+    if CursorHasItem() then
+      EquipCursorItem(slotId)
+      if not CursorHasItem() then
+        mod.combatQueue.RemoveFromQueue(slotId)
+      else
+        ClearCursor()
+        mod.combatQueue.RemoveFromQueue(slotId)
+      end
+    else
+      mod.combatQueue.RemoveFromQueue(slotId)
+    end
   end
 end
 
