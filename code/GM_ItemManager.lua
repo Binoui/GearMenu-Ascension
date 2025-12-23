@@ -220,17 +220,31 @@ function me.SwitchItemsSecure(itemId, slotId)
   -- EquipCursorItem works for weapons even in combat
   EquipCursorItem(slotId)
   
-  -- Check if item was successfully equipped (cursor should be empty)
-  if CursorHasItem() then
-    -- EquipCursorItem failed, item is still on cursor
-    -- This means it couldn't be equipped, add to queue
-    ClearCursor()
-    mod.combatQueue.AddToQueue(itemId, slotId)
-    return
+  -- Check if item was successfully equipped
+  -- If cursor still has item after a brief moment, EquipCursorItem failed
+  -- Use a small delay to allow the game to process the equip
+  if C_Timer and C_Timer.After then
+    C_Timer.After(0.05, function()
+      if CursorHasItem() then
+        -- EquipCursorItem failed, item is still on cursor
+        -- This means it couldn't be equipped, add to queue
+        ClearCursor()
+        mod.combatQueue.AddToQueue(itemId, slotId)
+      else
+        -- Success! Item was equipped (cursor is empty)
+        mod.combatQueue.RemoveFromQueue(slotId)
+      end
+    end)
+  else
+    -- Fallback: check immediately
+    if CursorHasItem() then
+      ClearCursor()
+      mod.combatQueue.AddToQueue(itemId, slotId)
+      return
+    else
+      mod.combatQueue.RemoveFromQueue(slotId)
+    end
   end
-  
-  -- Success! Item was equipped, clear combat queue
-  mod.combatQueue.RemoveFromQueue(slotId)
   
   -- Force update of gearBar frames after item switch (consolidated to single timer)
   if C_Timer and C_Timer.After then
