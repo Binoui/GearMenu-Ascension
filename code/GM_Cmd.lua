@@ -182,6 +182,7 @@ function me.SetupSlashCmdList()
         print("4. Disable other addons to test")
         print("")
         print("|cFF00FF00Tip:|r Use /rggm mem all to see all addons")
+      end
     elseif args[1] == "gc" then
       -- Force garbage collection
       local beforeKB = collectgarbage("count")
