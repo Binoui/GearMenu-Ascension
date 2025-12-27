@@ -83,12 +83,41 @@ function me.SetupSlashCmdList()
         end
       end
       
-      print("|cFF00FFB0GearMenu Memory Info:|r")
-      print("Active Tickers: " .. tickerCount)
-      print("|cFFFF0000Note:|r If you see 'out of memory' errors:")
-      print("1. /rggm rl - Reload UI to clear memory")
-      print("2. Disable other addons to test")
-      print("3. Check if errors persist without GearMenu")
+      -- Get Lua memory usage (in KB)
+      local luaMemoryKB = collectgarbage("count")
+      local luaMemoryMB = math.floor((luaMemoryKB / 1024) * 100) / 100
+      
+      -- Get timer frame pool info
+      local poolSize = 0
+      if C_Timer and C_Timer._GetPoolSize then
+        poolSize = C_Timer._GetPoolSize()
+      end
+      
+      print("|cFF00FFB0=== GearMenu Memory Info ===|r")
+      print("|cFFFFFF00Lua Memory:|r " .. luaMemoryMB .. " MB (" .. math.floor(luaMemoryKB) .. " KB)")
+      print("|cFFFFFF00Active Tickers:|r " .. tickerCount)
+      if poolSize > 0 then
+        print("|cFFFFFF00Timer Pool Size:|r " .. poolSize)
+      end
+      print("")
+      print("|cFFFF0000If you see 'out of memory' errors:|r")
+      print("1. /rggm gc - Force garbage collection")
+      print("2. /rggm rl - Reload UI to clear memory")
+      print("3. Disable other addons to test")
+      print("4. Check if errors persist without GearMenu")
+      print("")
+      print("|cFF00FF00Tip:|r Use /rggm mem regularly to monitor memory usage")
+    elseif args[1] == "gc" then
+      -- Force garbage collection
+      local beforeKB = collectgarbage("count")
+      collectgarbage("collect")
+      local afterKB = collectgarbage("count")
+      local freedKB = math.floor((beforeKB - afterKB) * 100) / 100
+      local freedMB = math.floor((freedKB / 1024) * 100) / 100
+      
+      print("|cFF00FFB0GearMenu:|r Garbage collection performed")
+      print("|cFFFFFF00Freed:|r " .. freedMB .. " MB (" .. freedKB .. " KB)")
+      print("|cFFFFFF00Current Memory:|r " .. math.floor((afterKB / 1024) * 100) / 100 .. " MB")
     elseif args[1] == "opt" then
       if mod.addonConfiguration and mod.addonConfiguration.OpenMainCategory then
         mod.addonConfiguration.OpenMainCategory()

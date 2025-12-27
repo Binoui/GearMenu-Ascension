@@ -27,6 +27,11 @@ if not C_Timer then
     end
   end
   
+  -- Expose pool size for diagnostics
+  function C_Timer._GetPoolSize()
+    return #timerFramePool
+  end
+  
   -- Timer object for NewTicker
   local Ticker = {}
   Ticker.__index = Ticker
