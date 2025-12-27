@@ -76,20 +76,23 @@ function me.InitializeSecureEquipButtons()
   secureEquipButtons.offhand:Hide()
   
   -- Use SecureHandlerWrapScript with global variables
-  -- The handler reads global variables and sets macrotext
+  -- The handler reads global variables and executes the macro directly
+  -- Use /equipslot to equip in a specific slot
   SecureHandlerWrapScript(secureEquipButtons.mainhand, "OnClick", secureEquipButtons.mainhand,
     [[
       local itemName = GearMenuEquipMainhandItemName
-      if itemName then
-        self:SetAttribute("macrotext", "/use " .. itemName)
+      local slotId = GearMenuEquipMainhandSlotId
+      if itemName and slotId then
+        RunMacroText("/equipslot " .. slotId .. " " .. itemName)
       end
     ]])
   
   SecureHandlerWrapScript(secureEquipButtons.offhand, "OnClick", secureEquipButtons.offhand,
     [[
       local itemName = GearMenuEquipOffhandItemName
-      if itemName then
-        self:SetAttribute("macrotext", "/use " .. itemName)
+      local slotId = GearMenuEquipOffhandSlotId
+      if itemName and slotId then
+        RunMacroText("/equipslot " .. slotId .. " " .. itemName)
       end
     ]])
 end
@@ -288,12 +291,14 @@ function me.SwitchItemsSecure(itemId, slotId)
     return
   end
   
-  -- Set global variable (can be modified even in combat)
-  -- SecureHandler will read this value
+  -- Set global variables (can be modified even in combat)
+  -- SecureHandler will read these values
   if slotId == INVSLOT_MAINHAND then
     _G.GearMenuEquipMainhandItemName = itemName
+    _G.GearMenuEquipMainhandSlotId = slotId
   elseif slotId == INVSLOT_OFFHAND then
     _G.GearMenuEquipOffhandItemName = itemName
+    _G.GearMenuEquipOffhandSlotId = slotId
   end
   
   -- Click the button to execute the macro
