@@ -24,6 +24,9 @@
 
 -- luacheck: globals SLASH_GEARMENU1 SLASH_GEARMENU2 SlashCmdList ReloadUI
 
+-- Initialize rggm namespace if it doesn't exist
+rggm = rggm or {}
+
 local mod = rggm
 local me = {}
 mod.cmd = me
